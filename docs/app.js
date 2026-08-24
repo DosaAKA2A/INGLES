@@ -1,0 +1,1023 @@
+/* INGLES — el motor del curso.
+   Vistas: curso (unidades) -> unidad (bloques) -> lecciones / práctica /
+   examen / ensayo; y aparte: repaso espaciado, conversación con IA y perfil.
+
+   El progreso vive en localStorage y, si hay pase, se sincroniza con el
+   worker (gana el que tenga `mod` más nuevo). Sin pase todo funciona igual,
+   solo que el progreso no viaja entre dispositivos. */
+
+'use strict';
+
+const API = 'https://ingles.studio-iris2026.workers.dev';
+const CLAVE_LOCAL = 'ingles-progreso';
+const CLAVE_TOKEN = 'ingles-token';
+const CLAVE_AJUSTES = 'ingles-ajustes';
+
+// Cajas del repaso espaciado: días hasta la próxima aparición.
+const CAJAS_DIAS = [0, 1, 3, 7, 14, 30];
+const NOTA_EXAMEN = 70;   // % para aprobar y desbloquear la siguiente unidad
+const TANDA_EXAMEN = 10;  // preguntas por examen
+
+// ---- iconos (SVG de línea, estilo Lucide) ----------------------------------
+
+const ICO = {
+  fuego: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3 2.5.5 5 2.5 5 6a5 5 0 0 1-10 0c0-1.5.5-2.5 1-3.5.3 1.5 1 3 2.5 3z"/><path d="M14.5 9c.7-1.5.5-3.5-.5-5-1 2-2.5 2.6-4 4C8 9.5 7 11.5 7 13"/></svg>',
+  estrella: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+  ajustes: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4m0 14v4M4.2 4.2l2.8 2.8m10 10 2.8 2.8M1 12h4m14 0h4M4.2 19.8l2.8-2.8m10-10 2.8-2.8"/></svg>',
+  atras: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>',
+  altavoz: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>',
+  tortuga: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg>',
+  libro: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>',
+  regla: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h20M2 7h20M2 17h20" opacity="0"/><path d="M3 5h18v14H3z"/><path d="M7 5v4m4-4v4m4-4v4m-8 6h10"/></svg>',
+  charla: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
+  pesa: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5 17.5 17.5"/><path d="m21 21-1.5-1.5M3 3l1.5 1.5"/><path d="M18 22 22 18M2 6 6 2"/><path d="m3 10 7-7m4 18 7-7"/></svg>',
+  diploma: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.5 13 17 22l-5-3-5 3 1.5-9"/></svg>',
+  pluma: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>',
+  mic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2"/><path d="M12 19v3"/></svg>',
+  check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+  refresco: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36L21 8"/><path d="M21 3v5h-5"/></svg>',
+  candado: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>'
+};
+
+// ---- estado ----------------------------------------------------------------
+
+let P = cargaProgreso();
+let AJ = JSON.parse(localStorage.getItem(CLAVE_AJUSTES) || '{"lento":false}');
+let token = localStorage.getItem(CLAVE_TOKEN) || '';
+let guardadoPendiente = null;
+
+function progresoVacio() {
+  return { v: 1, xp: 0, racha: { dias: 0, ultimo: '' }, unidades: {}, srs: {}, mod: 0 };
+}
+
+function cargaProgreso() {
+  try {
+    const p = JSON.parse(localStorage.getItem(CLAVE_LOCAL));
+    if (p && p.v === 1) return p;
+  } catch (e) { /* corrupto: se empieza de cero */ }
+  return progresoVacio();
+}
+
+function guarda() {
+  P.mod = Date.now();
+  localStorage.setItem(CLAVE_LOCAL, JSON.stringify(P));
+  pintaBarra();
+  if (!token) return;
+  clearTimeout(guardadoPendiente);
+  guardadoPendiente = setTimeout(subeProgreso, 2000);
+}
+
+async function subeProgreso() {
+  if (!token) return;
+  try {
+    await fetch(API + '/progreso', {
+      method: 'PUT',
+      headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify(P)
+    });
+  } catch (e) { /* sin red: la próxima escritura reintenta */ }
+}
+
+async function bajaProgreso() {
+  if (!token) return;
+  try {
+    const r = await fetch(API + '/progreso', { headers: { Authorization: 'Bearer ' + token } });
+    if (r.status === 401) { token = ''; localStorage.removeItem(CLAVE_TOKEN); return; }
+    if (!r.ok) return;
+    const remoto = await r.json();
+    if (remoto && remoto.v === 1 && (remoto.mod || 0) > (P.mod || 0)) {
+      P = remoto;
+      localStorage.setItem(CLAVE_LOCAL, JSON.stringify(P));
+      pintaBarra();
+      if (vistaActual === 'inicio') vInicio();
+    }
+  } catch (e) { /* sin red */ }
+}
+
+function u(uid) {
+  if (!P.unidades[uid]) P.unidades[uid] = { lec: {}, practica: 0, examen: -1, ensayo: -1 };
+  return P.unidades[uid];
+}
+
+function hoyISO() { return new Date().toISOString().slice(0, 10); }
+
+function tocaRacha() {
+  const hoy = hoyISO();
+  if (P.racha.ultimo === hoy) return;
+  const ayer = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  P.racha.dias = P.racha.ultimo === ayer ? P.racha.dias + 1 : 1;
+  P.racha.ultimo = hoy;
+}
+
+function daXP(n) { tocaRacha(); P.xp += n; guarda(); }
+
+// ---- repaso espaciado -------------------------------------------------------
+
+function claveSRS(uid, i) { return uid + ':' + i; }
+
+function anotaSRS(uid, i, acierto) {
+  const k = claveSRS(uid, i);
+  const item = P.srs[k] || { caja: 0, prox: 0 };
+  item.caja = acierto ? Math.min(item.caja + 1, CAJAS_DIAS.length - 1) : Math.max(item.caja - 1, 0);
+  item.prox = Date.now() + CAJAS_DIAS[item.caja] * 86400000;
+  P.srs[k] = item;
+}
+
+function pendientesSRS() {
+  const ahora = Date.now();
+  const lista = [];
+  for (const [k, item] of Object.entries(P.srs)) {
+    if (item.prox > ahora) continue;
+    const [uid, i] = k.split(':');
+    const unidad = CURSO.find((x) => x.id === uid);
+    const palabra = unidad && unidad.vocab[+i];
+    if (palabra) lista.push({ uid, i: +i, palabra, caja: item.caja });
+  }
+  // Primero las cajas bajas: son las que están más flojas.
+  return lista.sort((a, b) => a.caja - b.caja);
+}
+
+// ---- utilidades de interfaz -------------------------------------------------
+
+const $ = (sel) => document.querySelector(sel);
+const vista = () => $('#vista');
+let vistaActual = 'inicio';
+
+function esc(t) {
+  return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function botonAudio(texto, extra = '') {
+  return `<button class="btn-audio ${extra}" data-di="${esc(texto)}" title="Escuchar" aria-label="Escuchar">${ICO.altavoz}</button>`;
+}
+
+// Un solo listener para todos los botones de audio de la página.
+document.addEventListener('click', (ev) => {
+  const b = ev.target.closest('[data-di]');
+  if (!b) return;
+  ev.stopPropagation();
+  document.querySelectorAll('.sonando').forEach((x) => x.classList.remove('sonando'));
+  b.classList.add('sonando');
+  Voz.di(b.dataset.di, { lento: AJ.lento, alTerminar: () => b.classList.remove('sonando') });
+});
+
+function pintaBarra() {
+  $('#dato-racha').innerHTML = ICO.fuego + ' ' + P.racha.dias;
+  $('#dato-racha').classList.toggle('encendido', P.racha.ultimo === hoyISO());
+  $('#dato-xp').innerHTML = ICO.estrella + ' ' + P.xp + ' XP';
+  const nRepaso = pendientesSRS().length;
+  const tabRepaso = document.querySelector('[data-vista="repaso"]');
+  tabRepaso.innerHTML = nRepaso ? `Repaso <span class="pendiente">(${nRepaso})</span>` : 'Repaso';
+}
+
+// ---- navegación -------------------------------------------------------------
+
+$('#tabs').addEventListener('click', (ev) => {
+  const b = ev.target.closest('button');
+  if (!b) return;
+  document.querySelectorAll('#tabs button').forEach((x) => x.classList.toggle('activo', x === b));
+  Voz.calla();
+  ({ inicio: vInicio, repaso: vRepaso, charla: vCharla, perfil: vPerfil })[b.dataset.vista]();
+});
+
+$('#ir-inicio').addEventListener('click', () => {
+  document.querySelectorAll('#tabs button').forEach((x) => x.classList.toggle('activo', x.dataset.vista === 'inicio'));
+  Voz.calla();
+  vInicio();
+});
+
+// ---- vista: curso (lista de unidades) --------------------------------------
+
+function examenAprobado(uid) { return (P.unidades[uid]?.examen ?? -1) >= NOTA_EXAMEN; }
+
+function desbloqueada(idx) {
+  if (idx === 0) return true;
+  return examenAprobado(CURSO[idx - 1].id);
+}
+
+function pctUnidad(unidad) {
+  const d = u(unidad.id);
+  let hecho = 0, total = 4 + (unidad.dialogo ? 1 : 0);
+  if (d.lec.vocab) hecho++;
+  if (d.lec.gram) hecho++;
+  if (unidad.dialogo && d.lec.dialogo) hecho++;
+  if (d.practica >= unidad.ejercicios.length) hecho++;
+  if (examenAprobado(unidad.id)) hecho++;
+  return Math.round((hecho / total) * 100);
+}
+
+function vInicio() {
+  vistaActual = 'inicio';
+  let html = `<h1>Inglés desde cero</h1>
+    <p class="gris">Un camino: cada unidad se abre aprobando el examen de la anterior con ${NOTA_EXAMEN}% o más.</p>
+    <div class="unidades">`;
+  CURSO.forEach((unidad, idx) => {
+    const abierta = desbloqueada(idx);
+    const pct = pctUnidad(unidad);
+    const hecha = examenAprobado(unidad.id);
+    const actual = abierta && !hecha;
+    html += `<button class="unidad ${abierta ? '' : 'bloqueada'} ${hecha ? 'hecha' : ''} ${actual ? 'actual' : ''}" data-uid="${unidad.id}" ${abierta ? '' : 'disabled'}>
+      <span class="unidad-num">${hecha ? ICO.check : idx + 1}</span>
+      <span class="unidad-info">
+        <span class="unidad-titulo">${esc(unidad.titulo)}</span>
+        <span class="unidad-sub">${esc(unidad.descripcion)}</span>
+        ${abierta ? `<span class="progreso-mini"><i style="width:${pct}%"></i></span>` : ''}
+      </span>
+      <span class="unidad-nivel">${abierta ? unidad.nivel : ''}${abierta ? '' : ICO.candado}</span>
+    </button>`;
+  });
+  html += '</div>';
+  vista().innerHTML = html;
+  vista().querySelectorAll('.unidad[data-uid]').forEach((b) => {
+    b.addEventListener('click', () => vUnidad(b.dataset.uid));
+  });
+  pintaBarra();
+}
+
+// ---- vista: unidad ----------------------------------------------------------
+
+function vUnidad(uid) {
+  vistaActual = 'unidad';
+  const unidad = CURSO.find((x) => x.id === uid);
+  const d = u(uid);
+  const practicaHecha = d.practica >= unidad.ejercicios.length;
+  const leccionesListas = d.lec.vocab && d.lec.gram && (!unidad.dialogo || d.lec.dialogo);
+
+  const bloque = (icono, titulo, sub, extra, clases, accion) =>
+    `<button class="bloque ${clases}" data-accion="${accion}">
+      <span class="bloque-icono">${icono}</span>
+      <span><span class="bloque-titulo">${titulo}</span><br><span class="bloque-sub">${sub}</span></span>
+      ${extra}
+    </button>`;
+
+  vista().innerHTML = `
+    <button class="volver" id="volver">${ICO.atras} Todas las unidades</button>
+    <h1>${esc(unidad.titulo)}</h1>
+    <p class="gris">${esc(unidad.descripcion)}</p>
+    <div class="bloques">
+      ${bloque(ICO.libro, 'Vocabulario', unidad.vocab.length + ' palabras con audio', d.lec.vocab ? `<span class="bloque-extra bien">${ICO.check}</span>` : '', d.lec.vocab ? 'hecho' : '', 'vocab')}
+      ${bloque(ICO.regla, 'Gramática', 'La explicación, con ejemplos para escuchar', d.lec.gram ? `<span class="bloque-extra bien">${ICO.check}</span>` : '', d.lec.gram ? 'hecho' : '', 'gram')}
+      ${unidad.dialogo ? bloque(ICO.charla, 'Diálogo', esc(unidad.dialogo.titulo), d.lec.dialogo ? `<span class="bloque-extra bien">${ICO.check}</span>` : '', d.lec.dialogo ? 'hecho' : '', 'dialogo') : ''}
+      ${bloque(ICO.pesa, 'Práctica', unidad.ejercicios.length + ' ejercicios variados', `<span class="bloque-extra ${practicaHecha ? 'bien' : ''}">${Math.min(d.practica, unidad.ejercicios.length)}/${unidad.ejercicios.length}</span>`, practicaHecha ? 'hecho' : '', 'practica')}
+      ${bloque(ICO.diploma, 'Examen', `${TANDA_EXAMEN} preguntas. Aprueba con ${NOTA_EXAMEN}% para abrir la siguiente unidad`, d.examen >= 0 ? `<span class="bloque-extra ${d.examen >= NOTA_EXAMEN ? 'bien' : ''}">${d.examen}%</span>` : '', (d.examen >= NOTA_EXAMEN ? 'hecho ' : '') + (leccionesListas ? '' : 'cerrado'), leccionesListas ? 'examen' : '')}
+      ${bloque(ICO.pluma, 'Ensayo', esc(unidad.ensayo.resumen), d.ensayo >= 0 ? `<span class="bloque-extra ${d.ensayo >= 60 ? 'bien' : ''}">${d.ensayo}</span>` : '', '', 'ensayo')}
+    </div>
+    ${leccionesListas ? '' : `<p class="gris chica espacio-arriba" style="margin-top:14px">El examen se abre al terminar las lecciones de arriba.</p>`}`;
+
+  $('#volver').addEventListener('click', vInicio);
+  vista().querySelectorAll('[data-accion]').forEach((b) => {
+    const a = b.dataset.accion;
+    if (!a) return;
+    b.addEventListener('click', () => {
+      Voz.calla();
+      if (a === 'vocab') vVocab(unidad);
+      else if (a === 'gram') vGramatica(unidad);
+      else if (a === 'dialogo') vDialogo(unidad);
+      else if (a === 'practica') empiezaPractica(unidad);
+      else if (a === 'examen') empiezaExamen(unidad);
+      else if (a === 'ensayo') vEnsayo(unidad);
+    });
+  });
+}
+
+// ---- lecciones --------------------------------------------------------------
+
+function vVocab(unidad) {
+  vistaActual = 'vocab';
+  let filas = '';
+  unidad.vocab.forEach((v) => {
+    filas += `<div class="vocab">
+      ${botonAudio(v.en)}
+      <span class="vocab-en">${esc(v.en)}${v.ej ? `<br><span class="vocab-ej">${esc(v.ej)}</span>` : ''}</span>
+      <span class="vocab-es">${esc(v.es)}</span>
+    </div>`;
+  });
+  vista().innerHTML = `
+    <button class="volver" id="volver">${ICO.atras} ${esc(unidad.titulo)}</button>
+    <h1>Vocabulario</h1>
+    <p class="gris">Toca el altavoz para escuchar cada palabra. Después la práctica y el repaso se encargan de que se te peguen.</p>
+    <div class="ficha"><div class="vocab-lista">${filas}</div></div>
+    <button class="btn ancho" id="listo">Ya las escuché todas</button>`;
+  $('#volver').addEventListener('click', () => vUnidad(unidad.id));
+  $('#listo').addEventListener('click', () => {
+    const d = u(unidad.id);
+    if (!d.lec.vocab) { d.lec.vocab = 1; daXP(15); } else guarda();
+    vUnidad(unidad.id);
+  });
+}
+
+function vGramatica(unidad) {
+  vistaActual = 'gram';
+  let bloques = '';
+  unidad.gramatica.forEach((g) => {
+    bloques += `<div class="ficha gram"><h2 style="margin-top:0">${esc(g.titulo)}</h2>${g.html}</div>`;
+  });
+  vista().innerHTML = `
+    <button class="volver" id="volver">${ICO.atras} ${esc(unidad.titulo)}</button>
+    <h1>Gramática</h1>
+    ${bloques}
+    <button class="btn ancho" id="listo">Entendido</button>`;
+  // Las frases de ejemplo marcadas con .ej se escuchan al tocarlas.
+  vista().querySelectorAll('.ej').forEach((n) => {
+    n.style.cursor = 'pointer';
+    n.title = 'Escuchar';
+    n.addEventListener('click', () => Voz.di(n.textContent, { lento: AJ.lento }));
+  });
+  $('#volver').addEventListener('click', () => vUnidad(unidad.id));
+  $('#listo').addEventListener('click', () => {
+    const d = u(unidad.id);
+    if (!d.lec.gram) { d.lec.gram = 1; daXP(15); } else guarda();
+    vUnidad(unidad.id);
+  });
+}
+
+function vDialogo(unidad) {
+  vistaActual = 'dialogo';
+  const dlg = unidad.dialogo;
+  let lineas = '';
+  dlg.lineas.forEach((l, i) => {
+    lineas += `<div class="linea ${l.q === 'B' ? 'b' : ''}">
+      <span class="linea-quien">${esc(l.q)}</span>
+      <div class="globo" data-idx="${i}">${esc(l.en)}<span class="globo-es">${esc(l.es)}</span></div>
+    </div>`;
+  });
+  vista().innerHTML = `
+    <button class="volver" id="volver">${ICO.atras} ${esc(unidad.titulo)}</button>
+    <h1>${esc(dlg.titulo)}</h1>
+    <p class="gris">Escucha el diálogo completo o toca cada globo. Cuando lo sigas sin leer la traducción, responde las preguntas.</p>
+    <div class="acciones" style="margin:0 0 16px">
+      <button class="btn secundario" id="reproducir">${ICO.altavoz} Reproducir todo</button>
+    </div>
+    <div class="ficha"><div class="dialogo">${lineas}</div></div>
+    <button class="btn ancho" id="preguntas">Responder las preguntas</button>`;
+
+  $('#volver').addEventListener('click', () => vUnidad(unidad.id));
+
+  vista().querySelectorAll('.globo').forEach((g) => {
+    g.addEventListener('click', () => {
+      const l = dlg.lineas[+g.dataset.idx];
+      document.querySelectorAll('.globo.sonando').forEach((x) => x.classList.remove('sonando'));
+      g.classList.add('sonando');
+      Voz.di(l.en, { lento: AJ.lento, voz: l.q === 'B' ? 'b' : 'a', alTerminar: () => g.classList.remove('sonando') });
+    });
+  });
+
+  let tocando = false;
+  $('#reproducir').addEventListener('click', () => {
+    if (tocando) { tocando = false; Voz.calla(); return; }
+    tocando = true;
+    const globos = vista().querySelectorAll('.globo');
+    const toca = (i) => {
+      if (!tocando || i >= dlg.lineas.length) { tocando = false; return; }
+      const l = dlg.lineas[i];
+      globos.forEach((x) => x.classList.remove('sonando'));
+      globos[i].classList.add('sonando');
+      globos[i].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      Voz.di(l.en, { lento: AJ.lento, voz: l.q === 'B' ? 'b' : 'a', alTerminar: () => setTimeout(() => toca(i + 1), 350) });
+    };
+    toca(0);
+  });
+
+  $('#preguntas').addEventListener('click', () => {
+    tocando = false; Voz.calla();
+    corredor({
+      titulo: 'Preguntas del diálogo',
+      ejercicios: dlg.preguntas,
+      repetirFallos: true,
+      alTerminar: (aciertos, total) => {
+        const d = u(unidad.id);
+        if (!d.lec.dialogo && aciertos === total) { d.lec.dialogo = 1; daXP(20); } else guarda();
+        resumenTanda(aciertos, total, aciertos === total ? 'Diálogo dominado.' : 'Casi: vuelve a escucharlo y reintenta las preguntas.', () => vUnidad(unidad.id));
+      }
+    });
+  });
+}
+
+// ---- ensayo -----------------------------------------------------------------
+
+function vEnsayo(unidad) {
+  vistaActual = 'ensayo';
+  const e = unidad.ensayo;
+  vista().innerHTML = `
+    <button class="volver" id="volver">${ICO.atras} ${esc(unidad.titulo)}</button>
+    <h1>Ensayo</h1>
+    <div class="ficha">
+      <p><b>Consigna:</b> ${esc(e.consigna)}</p>
+      <p class="gris chica" style="margin-top:6px">Mínimo ${e.min} palabras, en inglés. La IA lo corrige, lo puntúa y te da la versión mejorada.</p>
+    </div>
+    <textarea class="ensayo-area" id="texto" placeholder="Write here, in English..." spellcheck="false"></textarea>
+    <p class="gris chica" id="cuenta" style="margin-top:6px">0 palabras</p>
+    <div class="acciones">
+      <button class="btn" id="enviar" disabled>Enviar a corregir</button>
+    </div>
+    <div id="resultado"></div>`;
+
+  $('#volver').addEventListener('click', () => vUnidad(unidad.id));
+  const area = $('#texto');
+  const nPalabras = () => area.value.trim().split(/\s+/).filter(Boolean).length;
+  area.addEventListener('input', () => {
+    const n = nPalabras();
+    $('#cuenta').textContent = n + ' palabras' + (n < e.min ? ' (mínimo ' + e.min + ')' : '');
+    $('#enviar').disabled = n < e.min;
+  });
+
+  $('#enviar').addEventListener('click', async () => {
+    if (!token) { modalPase(() => vEnsayo(unidad)); return; }
+    $('#enviar').disabled = true;
+    $('#enviar').textContent = 'Corrigiendo...';
+    try {
+      const r = await fetch(API + '/ia/ensayo', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ consigna: e.consigna, texto: area.value, nivel: unidad.nivel })
+      });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || ('fallo ' + r.status));
+      pintaCorreccion(unidad, data);
+    } catch (err) {
+      $('#resultado').innerHTML = `<div class="aviso">No se pudo corregir: ${esc(err.message)}.
+        ${String(err.message).includes('clave') ? 'Falta configurar la clave de Groq en el worker.' : 'Revisa la conexión e intenta de nuevo.'}</div>`;
+      $('#enviar').disabled = false;
+      $('#enviar').textContent = 'Enviar a corregir';
+    }
+  });
+}
+
+function pintaCorreccion(unidad, c) {
+  const d = u(unidad.id);
+  if (c.puntaje > (d.ensayo ?? -1)) d.ensayo = c.puntaje;
+  daXP(Math.round(c.puntaje / 2));
+
+  const clase = c.puntaje >= 75 ? 'verde' : (c.puntaje < 50 ? 'rojo' : '');
+  let items = '';
+  (c.correcciones || []).forEach((x) => {
+    items += `<div class="corr-item">
+      <span class="tachado">${esc(x.original)}</span> &rarr; <span class="bueno">${esc(x.corregido)}</span>
+      <span class="porque">${esc(x.explicacion)}</span>
+    </div>`;
+  });
+  $('#resultado').innerHTML = `
+    <div class="espacio"></div>
+    <div class="ficha centrado">
+      <div class="puntaje-grande ${clase}">${c.puntaje}</div>
+      <p>${esc(c.resumen || '')}</p>
+    </div>
+    ${items ? `<h2>Correcciones</h2><div class="correccion">${items}</div>` : ''}
+    ${c.version_mejorada ? `<h2>Versión mejorada ${botonAudio(c.version_mejorada)}</h2><div class="ficha">${esc(c.version_mejorada)}</div>` : ''}
+    ${c.consejo ? `<div class="aviso">${esc(c.consejo)}</div>` : ''}
+    <button class="btn ancho" id="volver-unidad">Listo</button>`;
+  $('#volver-unidad').addEventListener('click', () => vUnidad(unidad.id));
+  $('#resultado').scrollIntoView({ behavior: 'smooth' });
+}
+
+// ---- corredor de ejercicios -------------------------------------------------
+// Recorre una lista de ejercicios de cualquier tipo, pinta el veredicto y, si
+// se pide, repite al final los que salieron mal (una vez).
+
+function baraja(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function empiezaPractica(unidad) {
+  corredor({
+    titulo: 'Práctica',
+    ejercicios: baraja(unidad.ejercicios),
+    repetirFallos: true,
+    alAcierto: (ej, primerIntento) => {
+      daXP(primerIntento ? 10 : 5);
+      if (ej.vocabIdx != null) anotaSRS(unidad.id, ej.vocabIdx, primerIntento);
+    },
+    alFallo: (ej) => { if (ej.vocabIdx != null) anotaSRS(unidad.id, ej.vocabIdx, false); },
+    alTerminar: (aciertos, total) => {
+      const d = u(unidad.id);
+      d.practica = Math.max(d.practica, aciertos === total ? unidad.ejercicios.length : aciertos);
+      guarda();
+      resumenTanda(aciertos, total,
+        aciertos === total ? 'Práctica completa. El vocabulario que fallaste entró al repaso.' : 'Los fallos vuelven a aparecer en el repaso. Puedes repetir la práctica cuando quieras.',
+        () => vUnidad(unidad.id));
+    }
+  });
+}
+
+function empiezaExamen(unidad) {
+  const preguntas = baraja(unidad.examen).slice(0, TANDA_EXAMEN);
+  corredor({
+    titulo: 'Examen',
+    ejercicios: preguntas,
+    repetirFallos: false,
+    alTerminar: (aciertos, total) => {
+      const nota = Math.round((aciertos / total) * 100);
+      const d = u(unidad.id);
+      const primeraVez = d.examen < NOTA_EXAMEN && nota >= NOTA_EXAMEN;
+      if (nota > d.examen) d.examen = nota;
+      daXP(primeraVez ? 50 + Math.round(nota / 2) : Math.round(nota / 4));
+      const idx = CURSO.findIndex((x) => x.id === unidad.id);
+      const hay = idx + 1 < CURSO.length;
+      resumenTanda(aciertos, total,
+        nota >= NOTA_EXAMEN
+          ? (hay ? `Aprobado con ${nota}%. Se abrió la unidad ${idx + 2}.` : `Aprobado con ${nota}%. Terminaste todas las unidades del curso.`)
+          : `${nota}%. Hace falta ${NOTA_EXAMEN}%: repasa la práctica y vuelve a intentarlo.`,
+        () => vUnidad(unidad.id));
+    }
+  });
+}
+
+function corredor({ titulo, ejercicios, repetirFallos, alAcierto, alFallo, alTerminar }) {
+  vistaActual = 'corredor';
+  const cola = ejercicios.slice();
+  const totalPlan = cola.length;
+  let hechos = 0, aciertos = 0;
+  const yaRepetido = new Set();
+  let micActivo = null;
+
+  function siguiente() {
+    Voz.calla();
+    if (micActivo) { try { micActivo.abort(); } catch (e) {} micActivo = null; }
+    if (!cola.length) { alTerminar(aciertos, totalPlan); return; }
+    pinta(cola.shift());
+  }
+
+  function cabecera() {
+    return `<div class="ej-cabecera">
+      <button class="volver" id="salir" style="margin:0" title="Salir">${ICO.atras}</button>
+      <div class="ej-barra"><i style="width:${Math.round((hechos / totalPlan) * 100)}%"></i></div>
+      <span class="ej-contador">${Math.min(hechos + 1, totalPlan)}/${totalPlan}</span>
+    </div>`;
+  }
+
+  function resuelve(ej, ok, detalle) {
+    const esRepe = yaRepetido.has(ej);
+    hechos = Math.min(hechos + 1, totalPlan);
+    if (ok) {
+      aciertos++;
+      if (alAcierto) alAcierto(ej, !esRepe);
+    } else {
+      if (alFallo) alFallo(ej);
+      if (repetirFallos && !esRepe) { yaRepetido.add(ej); cola.push(ej); }
+    }
+    tocaRacha(); guarda();
+    veredicto(ok, detalle, siguiente);
+  }
+
+  function pinta(ej) {
+    const tipo = ej.tipo;
+    let cuerpo = '';
+    const consignas = {
+      opcion: 'Elige la respuesta correcta',
+      huecos: 'Completa la frase',
+      traduce: 'Escribe en inglés',
+      escucha: 'Escucha y escribe lo que oigas',
+      ordena: 'Ordena las palabras',
+      habla: 'Di la frase en voz alta',
+      parejas: 'Une cada palabra con su traducción'
+    };
+
+    if (tipo === 'opcion' || tipo === 'huecos') {
+      const enun = tipo === 'huecos' ? esc(ej.antes) + ' ____ ' + esc(ej.despues || '') : esc(ej.q);
+      cuerpo = `<p class="consigna">${consignas[tipo]}</p>
+        <p class="enunciado">${ej.audio ? botonAudio(ej.audio) : ''}${enun}</p>
+        <div class="opciones">${ej.opciones.map((o, i) => `<button class="opcion" data-i="${i}">${esc(o)}</button>`).join('')}</div>`;
+    } else if (tipo === 'traduce') {
+      cuerpo = `<p class="consigna">${consignas.traduce}</p>
+        <p class="enunciado">${esc(ej.es)}</p>
+        <input class="respuesta-texto" id="resp" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="In English...">
+        <div class="acciones"><button class="btn" id="comprobar">Comprobar</button></div>`;
+    } else if (tipo === 'escucha') {
+      cuerpo = `<p class="consigna">${consignas.escucha}</p>
+        <p class="enunciado">${botonAudio(ej.en)}<button class="btn-audio" data-di-lento="${esc(ej.en)}" title="Más despacio">${ICO.tortuga}</button></p>
+        <input class="respuesta-texto" id="resp" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Type what you hear...">
+        <div class="acciones"><button class="btn" id="comprobar">Comprobar</button></div>`;
+    } else if (tipo === 'ordena') {
+      const piezas = baraja(ej.en.split(' ').concat(ej.extra || []));
+      cuerpo = `<p class="consigna">${consignas.ordena}</p>
+        <p class="enunciado gris" style="font-size:17px">${esc(ej.es)}</p>
+        <div class="armado" id="armado"></div>
+        <div class="banco" id="banco">${piezas.map((p, i) => `<button class="pieza" data-p="${esc(p)}" data-i="${i}">${esc(p)}</button>`).join('')}</div>
+        <div class="acciones"><button class="btn" id="comprobar" disabled>Comprobar</button></div>`;
+    } else if (tipo === 'habla') {
+      cuerpo = `<p class="consigna">${consignas.habla}</p>
+        <p class="hablar-frase">${botonAudio(ej.en)} ${esc(ej.en)}</p>
+        <p class="hablar-fon gris">${esc(ej.es)}</p>
+        <button class="btn-mic" id="mic">${ICO.mic} Mantén y habla</button>
+        <div class="oido" id="oido"></div>
+        <div class="acciones"><button class="btn secundario" id="saltar">No puedo hablar ahora</button></div>`;
+    } else if (tipo === 'parejas') {
+      const izquierda = ej.pares.map((p, i) => ({ t: p[0], par: i, lado: 'a' }));
+      const derecha = baraja(ej.pares.map((p, i) => ({ t: p[1], par: i, lado: 'b' })));
+      const mezcla = [];
+      for (let i = 0; i < izquierda.length; i++) { mezcla.push(izquierda[i], derecha[i]); }
+      cuerpo = `<p class="consigna">${consignas.parejas}</p>
+        <div class="parejas">${mezcla.map((c) => `<button class="pareja" data-par="${c.par}" data-lado="${c.lado}">${esc(c.t)}</button>`).join('')}</div>`;
+    }
+
+    vista().innerHTML = cabecera() + cuerpo;
+    $('#salir').addEventListener('click', () => { Voz.calla(); vInicio(); });
+
+    // audio lento del dictado
+    const lentoBtn = vista().querySelector('[data-di-lento]');
+    if (lentoBtn) lentoBtn.addEventListener('click', () => Voz.di(lentoBtn.dataset.diLento, { lento: true }));
+
+    // dictado: sonar solo al entrar
+    if (tipo === 'escucha') setTimeout(() => Voz.di(ej.en, { lento: AJ.lento }), 250);
+
+    if (tipo === 'opcion' || tipo === 'huecos') {
+      vista().querySelectorAll('.opcion').forEach((b) => b.addEventListener('click', () => {
+        const i = +b.dataset.i;
+        const ok = i === ej.r;
+        vista().querySelectorAll('.opcion').forEach((x) => { x.disabled = true; });
+        b.classList.add(ok ? 'ok' : 'no');
+        if (!ok) vista().querySelectorAll('.opcion')[ej.r].classList.add('ok');
+        const correcta = ej.opciones[ej.r];
+        const dicho = ej.di || (tipo === 'huecos' ? (ej.antes + ' ' + correcta + ' ' + (ej.despues || '')).trim() : null);
+        resuelve(ej, ok, { correcta, di: dicho });
+      }));
+    }
+
+    if (tipo === 'traduce' || tipo === 'escucha') {
+      const comprueba = () => {
+        const dado = $('#resp').value;
+        if (!dado.trim()) return;
+        const esperados = tipo === 'escucha' ? [ej.en] : ej.en;
+        const ok = esperados.some((v) => Voz.normaliza(v) === Voz.normaliza(dado));
+        resuelve(ej, ok, { correcta: esperados[0], di: esperados[0] });
+      };
+      $('#comprobar').addEventListener('click', comprueba);
+      $('#resp').addEventListener('keydown', (e) => { if (e.key === 'Enter') comprueba(); });
+      $('#resp').focus();
+    }
+
+    if (tipo === 'ordena') {
+      const armado = $('#armado');
+      const actualiza = () => { $('#comprobar').disabled = !armado.children.length; };
+      $('#banco').addEventListener('click', (e) => {
+        const p = e.target.closest('.pieza');
+        if (!p || p.classList.contains('usada')) return;
+        p.classList.add('usada');
+        const copia = document.createElement('button');
+        copia.className = 'pieza';
+        copia.textContent = p.dataset.p;
+        copia.dataset.origen = p.dataset.i;
+        copia.addEventListener('click', () => {
+          $('#banco').querySelector(`[data-i="${copia.dataset.origen}"]`).classList.remove('usada');
+          copia.remove();
+          actualiza();
+        });
+        armado.appendChild(copia);
+        actualiza();
+      });
+      $('#comprobar').addEventListener('click', () => {
+        const dado = Array.from(armado.children).map((x) => x.textContent).join(' ');
+        const ok = Voz.normaliza(dado) === Voz.normaliza(ej.en);
+        resuelve(ej, ok, { correcta: ej.en, di: ej.en });
+      });
+    }
+
+    if (tipo === 'habla') {
+      const btn = $('#mic');
+      btn.addEventListener('click', () => {
+        if (micActivo) { try { micActivo.stop(); } catch (e) {} return; }
+        btn.classList.add('grabando');
+        btn.innerHTML = ICO.mic + ' Escuchando... toca para parar';
+        $('#oido').innerHTML = '';
+        micActivo = Voz.escucha({
+          alOir: (alternativas) => {
+            const notas = alternativas.map((t) => ({ t, n: Voz.notaPronunciacion(ej.en, t) }));
+            notas.sort((a, b) => b.n - a.n);
+            const mejor = notas[0];
+            const ok = mejor.n >= 75;
+            $('#oido').innerHTML = `Se oyó: <b class="${ok ? 'ok' : 'no'}">&quot;${esc(mejor.t)}&quot;</b> — pronunciación ${mejor.n}%`;
+            setTimeout(() => resuelve(ej, ok, {
+              correcta: ej.en, di: ej.en,
+              nota: ok ? `Pronunciación ${mejor.n}%` : `Pronunciación ${mejor.n}%: escucha el modelo y prueba otra vez en el repaso`
+            }), 900);
+          },
+          alError: (msj) => { $('#oido').innerHTML = `<span class="gris">${esc(msj)}</span>`; },
+          alFin: () => {
+            micActivo = null;
+            btn.classList.remove('grabando');
+            btn.innerHTML = ICO.mic + ' Mantén y habla';
+          }
+        });
+      });
+      $('#saltar').addEventListener('click', () => resuelve(ej, true, { correcta: ej.en, di: ej.en, nota: 'Saltado sin micrófono' }));
+    }
+
+    if (tipo === 'parejas') {
+      let elegida = null;
+      let vivas = ej.pares.length;
+      let fallos = 0;
+      vista().querySelectorAll('.pareja').forEach((b) => b.addEventListener('click', () => {
+        if (b.classList.contains('ok')) return;
+        if (!elegida) { elegida = b; b.classList.add('elegida'); return; }
+        if (elegida === b) { b.classList.remove('elegida'); elegida = null; return; }
+        if (elegida.dataset.par === b.dataset.par && elegida.dataset.lado !== b.dataset.lado) {
+          elegida.classList.remove('elegida');
+          elegida.classList.add('ok'); b.classList.add('ok');
+          const en = elegida.dataset.lado === 'a' ? elegida.textContent : b.textContent;
+          Voz.di(en, { lento: false });
+          vivas--;
+          if (!vivas) resuelve(ej, fallos <= 1, { correcta: 'Parejas unidas con ' + fallos + ' ' + (fallos === 1 ? 'fallo' : 'fallos') });
+        } else {
+          fallos++;
+          b.classList.add('no'); elegida.classList.add('no');
+          const a = elegida;
+          setTimeout(() => { a.classList.remove('no', 'elegida'); b.classList.remove('no'); }, 350);
+        }
+        elegida = null;
+      }));
+    }
+  }
+
+  function veredicto(ok, detalle, continuar) {
+    const capa = document.createElement('div');
+    capa.className = 'veredicto ' + (ok ? 'ok' : 'no');
+    capa.innerHTML = `<div class="veredicto-inner">
+      <div class="veredicto-texto">
+        <div class="veredicto-titulo">${ok ? 'Correcto' : 'No es así'}</div>
+        <div class="veredicto-detalle">${detalle.nota ? esc(detalle.nota) : (ok ? '' : 'Respuesta: ' + esc(detalle.correcta))}
+          ${detalle.di ? ' ' + botonAudio(detalle.di) : ''}</div>
+      </div>
+      <button class="btn" id="sigue">Seguir</button>
+    </div>`;
+    document.body.appendChild(capa);
+    requestAnimationFrame(() => capa.classList.add('visible'));
+    if (ok && detalle.di) Voz.di(detalle.di, { lento: false });
+    const cierra = () => { capa.remove(); document.removeEventListener('keydown', porTecla); continuar(); };
+    const porTecla = (e) => { if (e.key === 'Enter') cierra(); };
+    capa.querySelector('#sigue').addEventListener('click', cierra);
+    document.addEventListener('keydown', porTecla);
+  }
+
+  siguiente();
+}
+
+function resumenTanda(aciertos, total, mensaje, alSeguir) {
+  const pct = Math.round((aciertos / total) * 100);
+  const clase = pct >= NOTA_EXAMEN ? 'verde' : (pct < 50 ? 'rojo' : '');
+  vista().innerHTML = `
+    <div class="espacio"></div>
+    <div class="ficha centrado">
+      <div class="puntaje-grande ${clase}">${pct}%</div>
+      <p style="font-weight:650">${aciertos} de ${total}</p>
+      <p class="gris">${esc(mensaje)}</p>
+    </div>
+    <button class="btn ancho" id="seguir">Seguir</button>`;
+  $('#seguir').addEventListener('click', alSeguir);
+}
+
+// ---- vista: repaso espaciado ------------------------------------------------
+
+function vRepaso() {
+  vistaActual = 'repaso';
+  const pendientes = pendientesSRS();
+  if (!pendientes.length) {
+    const total = Object.keys(P.srs).length;
+    vista().innerHTML = `<h1>Repaso</h1>
+      <p class="gris">Acá vuelven las palabras que ya viste, justo cuando están por olvidarse.</p>
+      <div class="espacio"></div>
+      <div class="ficha centrado">
+        <p style="font-weight:650">No hay nada pendiente.</p>
+        <p class="gris chica">${total ? 'Tienes ' + total + ' palabras en seguimiento; vuelve mañana.' : 'Completa la práctica de una unidad para sembrar el repaso.'}</p>
+      </div>`;
+    return;
+  }
+
+  // Cada palabra pendiente se convierte en un ejercicio: mitad al inglés, mitad al español.
+  const ejercicios = pendientes.slice(0, 20).map(({ uid, i, palabra }, idx) => {
+    const unidad = CURSO.find((x) => x.id === uid);
+    const otras = baraja(unidad.vocab.filter((v) => v !== palabra)).slice(0, 3);
+    if (idx % 2 === 0) {
+      const opciones = baraja([palabra.es].concat(otras.map((o) => o.es)));
+      return { tipo: 'opcion', q: palabra.en, audio: palabra.en, opciones, r: opciones.indexOf(palabra.es), di: palabra.en, _srs: { uid, i } };
+    }
+    return { tipo: 'traduce', es: palabra.es, en: [palabra.en], _srs: { uid, i } };
+  });
+
+  corredor({
+    titulo: 'Repaso',
+    ejercicios,
+    repetirFallos: false,
+    alAcierto: (ej) => { daXP(5); anotaSRS(ej._srs.uid, ej._srs.i, true); },
+    alFallo: (ej) => anotaSRS(ej._srs.uid, ej._srs.i, false),
+    alTerminar: (aciertos, total) => {
+      guarda();
+      resumenTanda(aciertos, total,
+        'Las que acertaste se alejan; las falladas vuelven pronto. Así funciona la memoria.',
+        () => { document.querySelectorAll('#tabs button').forEach((x) => x.classList.toggle('activo', x.dataset.vista === 'repaso')); vRepaso(); });
+    }
+  });
+}
+
+// ---- vista: conversación ----------------------------------------------------
+
+let charlaHist = [];
+
+function nivelActual() {
+  for (let i = CURSO.length - 1; i >= 0; i--) {
+    if (desbloqueada(i)) return CURSO[i].nivel;
+  }
+  return 'A0';
+}
+
+function vCharla() {
+  vistaActual = 'charla';
+  vista().innerHTML = `<h1>Conversar</h1>
+    <p class="gris chica">Un tutor de IA que habla a tu nivel (${nivelActual()}). Escríbele en inglés; si te trabas, pregunta en español. Toca sus mensajes para escucharlos.</p>
+    <div class="espacio"></div>
+    <div class="charla">
+      <div class="charla-msgs" id="msgs"></div>
+      <div class="charla-envio">
+        <input class="respuesta-texto" id="entrada" placeholder="Say something in English..." autocomplete="off">
+        <button class="btn" id="mandar">Enviar</button>
+      </div>
+    </div>`;
+
+  const msgs = $('#msgs');
+  const pintaMsg = (rol, texto) => {
+    const div = document.createElement('div');
+    div.className = 'msg' + (rol === 'user' ? ' mio' : '');
+    const partes = texto.split(/\[Mejor:\s*"?([^\]"]+)"?\]/);
+    div.innerHTML = esc(partes[0].trim()) + (partes[1] ? `<span class="mejor">Mejor: &quot;${esc(partes[1])}&quot;</span>` : '');
+    if (rol !== 'user') {
+      div.style.cursor = 'pointer';
+      div.title = 'Escuchar';
+      div.addEventListener('click', () => Voz.di(partes[0].trim(), { lento: AJ.lento }));
+    }
+    msgs.appendChild(div);
+    div.scrollIntoView({ block: 'end', behavior: 'smooth' });
+  };
+
+  charlaHist.forEach((m) => pintaMsg(m.role, m.content));
+  if (!charlaHist.length) {
+    const saludo = 'Hello! I am your English tutor. What is your name?';
+    charlaHist.push({ role: 'assistant', content: saludo });
+    pintaMsg('assistant', saludo);
+    Voz.di(saludo, { lento: AJ.lento });
+  }
+
+  const manda = async () => {
+    const texto = $('#entrada').value.trim();
+    if (!texto) return;
+    if (!token) { modalPase(vCharla); return; }
+    $('#entrada').value = '';
+    charlaHist.push({ role: 'user', content: texto });
+    pintaMsg('user', texto);
+    $('#mandar').disabled = true;
+    try {
+      const r = await fetch(API + '/ia/chat', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mensajes: charlaHist, nivel: nivelActual() })
+      });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || ('fallo ' + r.status));
+      charlaHist.push({ role: 'assistant', content: data.texto });
+      pintaMsg('assistant', data.texto);
+      Voz.di(data.texto.split('[Mejor:')[0].trim(), { lento: AJ.lento });
+      daXP(3);
+    } catch (err) {
+      pintaMsg('assistant', 'No pude responder: ' + err.message +
+        (String(err.message).includes('clave') ? ' (falta la clave de Groq en el worker)' : ''));
+    }
+    $('#mandar').disabled = false;
+    $('#entrada').focus();
+  };
+  $('#mandar').addEventListener('click', manda);
+  $('#entrada').addEventListener('keydown', (e) => { if (e.key === 'Enter') manda(); });
+}
+
+// ---- vista: perfil ----------------------------------------------------------
+
+function vPerfil() {
+  vistaActual = 'perfil';
+  const aprendidas = Object.values(P.srs).filter((x) => x.caja >= 2).length;
+  const enCurso = Object.keys(P.srs).length;
+  const unidadesHechas = CURSO.filter((x) => examenAprobado(x.id)).length;
+  const ensayos = CURSO.filter((x) => (P.unidades[x.id]?.ensayo ?? -1) >= 0).length;
+
+  vista().innerHTML = `<h1>Progreso</h1>
+    <div class="tarjetas-stats">
+      <div class="stat"><div class="stat-num oro">${P.racha.dias}</div><div class="stat-nombre">días de racha</div></div>
+      <div class="stat"><div class="stat-num azul">${P.xp}</div><div class="stat-nombre">XP total</div></div>
+      <div class="stat"><div class="stat-num verde">${aprendidas}</div><div class="stat-nombre">palabras firmes (de ${enCurso} vistas)</div></div>
+      <div class="stat"><div class="stat-num">${unidadesHechas}/${CURSO.length}</div><div class="stat-nombre">unidades aprobadas</div></div>
+      <div class="stat"><div class="stat-num">${ensayos}</div><div class="stat-nombre">ensayos corregidos</div></div>
+    </div>
+    <h2>Exámenes</h2>
+    <div class="bloques">
+      ${CURSO.map((x, i) => {
+        const nota = P.unidades[x.id]?.examen ?? -1;
+        return `<div class="bloque" style="cursor:default">
+          <span class="unidad-num" style="width:38px;height:38px;font-size:13px">${i + 1}</span>
+          <span><span class="bloque-titulo">${esc(x.titulo)}</span></span>
+          <span class="bloque-extra ${nota >= NOTA_EXAMEN ? 'bien' : ''}">${nota >= 0 ? nota + '%' : '—'}</span>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="espacio"></div>
+    <p class="gris chica">${token ? 'Progreso sincronizado con la nube.' : 'Progreso solo en este dispositivo. Conéctalo desde Ajustes para llevarlo al celular.'}</p>`;
+}
+
+// ---- ajustes y pase ---------------------------------------------------------
+
+function modal(html) {
+  const capa = $('#capa-modal');
+  capa.innerHTML = `<div class="modal">${html}</div>`;
+  capa.classList.remove('oculto');
+  capa.onclick = (e) => { if (e.target === capa) cierraModal(); };
+  return capa;
+}
+function cierraModal() { $('#capa-modal').classList.add('oculto'); $('#capa-modal').innerHTML = ''; }
+
+$('#btn-ajustes').innerHTML = ICO.ajustes;
+$('#btn-ajustes').addEventListener('click', () => {
+  const capa = modal(`
+    <h2>Ajustes</h2>
+    <div class="fila">
+      <span>Audio lento<br><span class="gris chica">Todas las voces hablan más despacio</span></span>
+      <label class="interruptor"><input type="checkbox" id="aj-lento" ${AJ.lento ? 'checked' : ''}><i></i></label>
+    </div>
+    <div class="fila">
+      <span>Sincronización<br><span class="gris chica" id="aj-sync-estado">${token ? 'Conectada' : 'Sin conectar'}</span></span>
+      <button class="btn secundario" id="aj-conectar" style="padding:8px 14px">${token ? 'Desconectar' : 'Conectar'}</button>
+    </div>
+    <div class="fila">
+      <span>Borrar progreso<br><span class="gris chica">Solo el de este dispositivo</span></span>
+      <button class="btn secundario" id="aj-borrar" style="padding:8px 14px">Borrar</button>
+    </div>
+    <div class="espacio"></div>
+    <button class="btn ancho" id="aj-cerrar">Cerrar</button>`);
+  capa.querySelector('#aj-lento').addEventListener('change', (e) => {
+    AJ.lento = e.target.checked;
+    localStorage.setItem(CLAVE_AJUSTES, JSON.stringify(AJ));
+  });
+  capa.querySelector('#aj-conectar').addEventListener('click', () => {
+    if (token) {
+      token = ''; localStorage.removeItem(CLAVE_TOKEN);
+      capa.querySelector('#aj-sync-estado').textContent = 'Sin conectar';
+      capa.querySelector('#aj-conectar').textContent = 'Conectar';
+    } else {
+      cierraModal();
+      modalPase(() => {});
+    }
+  });
+  capa.querySelector('#aj-borrar').addEventListener('click', () => {
+    capa.querySelector('#aj-borrar').textContent = 'Seguro?';
+    capa.querySelector('#aj-borrar').onclick = () => {
+      P = progresoVacio();
+      localStorage.setItem(CLAVE_LOCAL, JSON.stringify(P));
+      cierraModal(); vInicio();
+    };
+  });
+  capa.querySelector('#aj-cerrar').addEventListener('click', cierraModal);
+});
+
+function modalPase(despues) {
+  const capa = modal(`
+    <h2>Conectar</h2>
+    <p class="gris chica">El pase guarda tu progreso en la nube y habilita la IA (ensayos y conversación).</p>
+    <div class="espacio"></div>
+    <input class="respuesta-texto" id="pase" type="password" placeholder="Pase" autocomplete="current-password">
+    <p class="gris chica" id="pase-error" style="margin-top:8px"></p>
+    <div class="acciones">
+      <button class="btn secundario" id="pase-no">Ahora no</button>
+      <button class="btn" id="pase-si" style="flex:1">Entrar</button>
+    </div>`);
+  const entra = async () => {
+    const pase = capa.querySelector('#pase').value;
+    if (!pase) return;
+    capa.querySelector('#pase-si').disabled = true;
+    try {
+      const r = await fetch(API + '/entrar', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pase })
+      });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || 'fallo');
+      token = data.token;
+      localStorage.setItem(CLAVE_TOKEN, token);
+      cierraModal();
+      await bajaProgreso();
+      subeProgreso();
+      despues();
+    } catch (err) {
+      capa.querySelector('#pase-error').textContent = err.message === 'pase incorrecto' ? 'Pase incorrecto.' : 'No se pudo conectar: ' + err.message;
+      capa.querySelector('#pase-si').disabled = false;
+    }
+  };
+  capa.querySelector('#pase-si').addEventListener('click', entra);
+  capa.querySelector('#pase').addEventListener('keydown', (e) => { if (e.key === 'Enter') entra(); });
+  capa.querySelector('#pase-no').addEventListener('click', cierraModal);
+  capa.querySelector('#pase').focus();
+}
+
+// ---- arranque ---------------------------------------------------------------
+
+pintaBarra();
+vInicio();
+bajaProgreso();

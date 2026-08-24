@@ -1,0 +1,9 @@
+name = "ingles"
+main = "worker.js"
+compatibility_date = "2026-08-01"
+
+# Progreso del curso (XP, racha, repaso espaciado, ensayos corregidos).
+# Es un solo usuario: una clave por dispositivo no hace falta, el pase basta.
+[[kv_namespaces]]
+binding = "INGLES_KV"
+id = "1ca607ab162949d2b3df4190ec618805"
