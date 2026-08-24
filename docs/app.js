@@ -99,12 +99,17 @@ function u(uid) {
   return P.unidades[uid];
 }
 
-function hoyISO() { return new Date().toISOString().slice(0, 10); }
+// Fecha LOCAL, no UTC: con toISOString el "día" de la racha cambiaría a las
+// 7 de la tarde (UTC-5), y una sesión nocturna contaría como el día siguiente.
+function fechaISO(d) {
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function hoyISO() { return fechaISO(new Date()); }
 
 function tocaRacha() {
   const hoy = hoyISO();
   if (P.racha.ultimo === hoy) return;
-  const ayer = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  const ayer = fechaISO(new Date(Date.now() - 86400000));
   P.racha.dias = P.racha.ultimo === ayer ? P.racha.dias + 1 : 1;
   P.racha.ultimo = hoy;
 }
