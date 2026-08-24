@@ -94,6 +94,20 @@ async function bajaProgreso() {
   } catch (e) { /* sin red */ }
 }
 
+// Con pase, el texto dinámico (chat, ensayos) se dice con la voz neuronal del
+// worker; sin él (o sin clave de Groq), Voz cae sola al sintetizador.
+function conectaVozNube() {
+  Voz.nube = !token ? null : async (texto) => {
+    const r = await fetch(API + '/ia/voz', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ texto })
+    });
+    if (!r.ok) return null;
+    return URL.createObjectURL(await r.blob());
+  };
+}
+
 function u(uid) {
   if (!P.unidades[uid]) P.unidades[uid] = { lec: {}, practica: 0, examen: -1, ensayo: -1 };
   return P.unidades[uid];
@@ -964,6 +978,7 @@ $('#btn-ajustes').addEventListener('click', () => {
   capa.querySelector('#aj-conectar').addEventListener('click', () => {
     if (token) {
       token = ''; localStorage.removeItem(CLAVE_TOKEN);
+      conectaVozNube();
       capa.querySelector('#aj-sync-estado').textContent = 'Sin conectar';
       capa.querySelector('#aj-conectar').textContent = 'Conectar';
     } else {
@@ -1006,6 +1021,7 @@ function modalPase(despues) {
       if (!r.ok) throw new Error(data.error || 'fallo');
       token = data.token;
       localStorage.setItem(CLAVE_TOKEN, token);
+      conectaVozNube();
       cierraModal();
       await bajaProgreso();
       subeProgreso();
@@ -1024,5 +1040,6 @@ function modalPase(despues) {
 // ---- arranque ---------------------------------------------------------------
 
 pintaBarra();
+conectaVozNube();
 vInicio();
 bajaProgreso();

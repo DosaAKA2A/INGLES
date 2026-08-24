@@ -1,62 +1,128 @@
-/* INGLES — voz: síntesis (escuchar inglés) y reconocimiento (evaluar
-   pronunciación). Todo con lo que trae el navegador, sin servicios de pago.
+/* INGLES — voz: reproducir inglés y evaluar pronunciación.
 
-   Síntesis: speechSynthesis con una voz en-US. En Chrome las voces "Google"
-   son remotas y suenan mucho mejor que las locales de Windows; se prefieren.
-   Las voces cargan tarde y a veces la lista llega vacía la primera vez, por
-   eso se escucha onvoiceschanged y se resuelve perezosamente.
+   Orden al hablar:
+   1. MP3 pregrabado con voz neuronal (docs/audio/, generado con edge-tts):
+      cubre TODO el contenido fijo del curso y suena humano.
+   2. Voz de la nube (Voz.nube, el worker con Groq TTS) para texto dinámico
+      (chat, ensayos corregidos), si está conectada.
+   3. speechSynthesis del navegador como último recurso. Ojo: en esta máquina
+      el navegador elegía una voz en ESPAÑOL para texto inglés ("Hi" sonaba
+      "i"), así que solo se usa si hay una voz en-* de verdad; se reintenta
+      cuando la lista de voces termina de cargar.
 
-   Reconocimiento: webkitSpeechRecognition (Chrome). Devuelve el texto oído y
-   la nota se calcula comparando palabra a palabra contra la frase esperada. */
+   Reconocimiento: webkitSpeechRecognition (Chrome). La nota compara palabra a
+   palabra contra la frase esperada. */
 
 const Voz = (() => {
-  let vozEN = null;
-  let vozEN2 = null; // segunda voz distinta para el interlocutor B de los diálogos
+  const RUTA_AUDIO = 'audio/';
 
-  function eligeVoces() {
-    const voces = speechSynthesis.getVoices().filter((v) => v.lang && v.lang.startsWith('en'));
-    if (!voces.length) return;
-    const remotas = voces.filter((v) => !v.localService);
-    const orden = (lista) => lista.sort((a, b) => {
-      const pa = (a.name.includes('Google') ? 0 : 1) + (a.lang === 'en-US' ? 0 : .5);
-      const pb = (b.name.includes('Google') ? 0 : 1) + (b.lang === 'en-US' ? 0 : .5);
-      return pa - pb;
-    });
-    const mejor = orden(remotas.length ? remotas : voces);
-    vozEN = mejor[0];
-    vozEN2 = mejor.find((v) => v !== vozEN && v.lang !== vozEN.lang) ||
-             mejor.find((v) => v !== vozEN) || vozEN;
-  }
-  eligeVoces();
-  if ('speechSynthesis' in window) speechSynthesis.onvoiceschanged = eligeVoces;
+  // ---- 1. MP3 pregrabados ----
 
+  let reproductor = null;
   let alTerminarActual = null;
 
-  function di(texto, opciones = {}) {
-    if (!('speechSynthesis' in window)) return;
-    speechSynthesis.cancel();
-    if (alTerminarActual) { alTerminarActual(); alTerminarActual = null; }
-    if (!vozEN) eligeVoces();
-    const u = new SpeechSynthesisUtterance(texto);
-    u.lang = 'en-US';
-    if (opciones.voz === 'b' && vozEN2) u.voice = vozEN2;
-    else if (vozEN) u.voice = vozEN;
-    u.rate = opciones.lento ? 0.65 : (opciones.rate || 0.92);
-    u.pitch = 1;
+  function terminaActual() {
+    if (alTerminarActual) { const f = alTerminarActual; alTerminarActual = null; f(); }
+  }
+
+  function suenaMP3(archivo, opciones) {
+    calla();
+    reproductor = new Audio(RUTA_AUDIO + archivo);
+    reproductor.playbackRate = opciones.lento ? 0.7 : 1;
     if (opciones.alTerminar) {
       alTerminarActual = opciones.alTerminar;
-      u.onend = u.onerror = () => {
-        if (alTerminarActual === opciones.alTerminar) alTerminarActual = null;
-        opciones.alTerminar();
-      };
+      reproductor.onended = reproductor.onerror = terminaActual;
+    }
+    reproductor.play().catch(() => terminaActual());
+  }
+
+  // ---- 2. voz de la nube (se engancha desde app.js cuando hay pase) ----
+
+  // Voz.nube = async (texto) => urlDeObjeto | null
+  const cacheNube = new Map();
+  let generacion = 0; // para descartar audios que llegan tarde tras un calla()
+
+  async function suenaNube(texto, opciones) {
+    const gen = ++generacion;
+    let url = cacheNube.get(texto);
+    if (url === undefined) {
+      try { url = await api.nube(texto); } catch (e) { url = null; }
+      cacheNube.set(texto, url);
+    }
+    if (gen !== generacion) return true;       // ya pidieron otra cosa
+    if (!url) return false;
+    suenaMP3es(url, opciones);
+    return true;
+  }
+
+  function suenaMP3es(url, opciones) {
+    calla();
+    reproductor = new Audio(url);
+    reproductor.playbackRate = opciones.lento ? 0.7 : 1;
+    if (opciones.alTerminar) {
+      alTerminarActual = opciones.alTerminar;
+      reproductor.onended = reproductor.onerror = terminaActual;
+    }
+    reproductor.play().catch(() => terminaActual());
+  }
+
+  // ---- 3. speechSynthesis, solo con una voz inglesa de verdad ----
+
+  let vozEN = null;
+
+  function eligeVoz() {
+    if (!('speechSynthesis' in window)) return;
+    const voces = speechSynthesis.getVoices().filter((v) => v.lang && v.lang.toLowerCase().startsWith('en'));
+    if (!voces.length) return;
+    voces.sort((x, y) => {
+      const p = (v) => (v.name.includes('Google') ? 0 : 2) + (v.lang === 'en-US' ? 0 : 1);
+      return p(x) - p(y);
+    });
+    vozEN = voces[0];
+  }
+  eligeVoz();
+  if ('speechSynthesis' in window) speechSynthesis.onvoiceschanged = eligeVoz;
+
+  function suenaSintetizador(texto, opciones) {
+    if (!('speechSynthesis' in window)) { if (opciones.alTerminar) opciones.alTerminar(); return; }
+    speechSynthesis.cancel();
+    if (!vozEN) eligeVoz();
+    const u = new SpeechSynthesisUtterance(texto);
+    u.lang = 'en-US';
+    if (vozEN) u.voice = vozEN;
+    u.rate = opciones.lento ? 0.65 : 1;
+    if (opciones.alTerminar) {
+      alTerminarActual = opciones.alTerminar;
+      u.onend = u.onerror = terminaActual;
     }
     speechSynthesis.speak(u);
   }
 
-  function calla() {
+  // ---- entrada única ----
+
+  const api = {};
+
+  api.nube = null; // app.js lo define cuando hay conexión
+
+  api.di = (texto, opciones = {}) => {
+    texto = String(texto).trim();
+    const clave = (opciones.voz === 'b' ? 'b|' : 'a|') + texto;
+    const archivo = (typeof AUDIO_MAPA !== 'undefined') && (AUDIO_MAPA[clave] || AUDIO_MAPA['a|' + texto]);
+    if (archivo) { suenaMP3(archivo, opciones); return; }
+    if (api.nube) {
+      suenaNube(texto, opciones).then((sono) => { if (!sono) suenaSintetizador(texto, opciones); });
+      return;
+    }
+    suenaSintetizador(texto, opciones);
+  };
+
+  api.calla = () => {
+    generacion++;
+    if (reproductor) { reproductor.onended = reproductor.onerror = null; reproductor.pause(); reproductor = null; }
     if ('speechSynthesis' in window) speechSynthesis.cancel();
-    if (alTerminarActual) { alTerminarActual(); alTerminarActual = null; }
-  }
+    terminaActual();
+  };
+  function calla() { api.calla(); }
 
   // ---- reconocimiento ----
 
@@ -74,7 +140,7 @@ const Voz = (() => {
     [/\bi'll\b/g, 'i will'], [/\bthat's\b/g, 'that is'], [/\bhaven't\b/g, 'have not']
   ];
 
-  function normaliza(texto) {
+  api.normaliza = (texto) => {
     let t = String(texto).toLowerCase()
       .replace(/’/g, "'")
       .replace(/[^a-z0-9' ]+/g, ' ')
@@ -82,14 +148,14 @@ const Voz = (() => {
       .trim();
     for (const [re, a] of CONTRACCIONES) t = t.replace(re, a);
     return t;
-  }
+  };
 
   // Nota 0-100: proporción de palabras esperadas que aparecieron, en orden
   // (subsecuencia común más larga, que perdona una palabra comida sin
   // desalinear todo el resto).
-  function notaPronunciacion(esperado, oido) {
-    const a = normaliza(esperado).split(' ').filter(Boolean);
-    const b = normaliza(oido).split(' ').filter(Boolean);
+  api.notaPronunciacion = (esperado, oido) => {
+    const a = api.normaliza(esperado).split(' ').filter(Boolean);
+    const b = api.normaliza(oido).split(' ').filter(Boolean);
     if (!a.length) return 0;
     const f = Array.from({ length: a.length + 1 }, () => new Array(b.length + 1).fill(0));
     for (let i = 1; i <= a.length; i++) {
@@ -98,9 +164,9 @@ const Voz = (() => {
       }
     }
     return Math.round((f[a.length][b.length] / a.length) * 100);
-  }
+  };
 
-  function escucha({ alOir, alError, alFin }) {
+  api.escucha = ({ alOir, alError, alFin }) => {
     const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!Rec) { alError('Este navegador no trae reconocimiento de voz. Usa Chrome.'); return null; }
     const rec = new Rec();
@@ -121,7 +187,8 @@ const Voz = (() => {
     rec.onend = () => { if (alFin) alFin(oyoAlgo); };
     rec.start();
     return rec;
-  }
+  };
 
-  return { di, calla, escucha, normaliza, notaPronunciacion, TIENE_MIC };
+  api.TIENE_MIC = TIENE_MIC;
+  return api;
 })();

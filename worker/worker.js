@@ -220,6 +220,25 @@ export default {
         return json({ texto });
       }
 
+      // Texto dinámico (chat, ensayos) dicho con voz neuronal de Groq: el
+      // contenido fijo del curso ya va pregrabado, esto cubre lo que no se
+      // puede pregrabar. Sin clave responde 503 y la página usa el sintetizador.
+      if (url.pathname === '/ia/voz' && req.method === 'POST') {
+        if (!env.GROQ_API_KEY) return json({ error: 'sin clave de IA' }, 503);
+        const { texto } = await req.json().catch(() => ({}));
+        if (!texto || String(texto).trim().length < 1) return json({ error: 'sin texto' }, 400);
+        const r = await fetch('https://api.groq.com/openai/v1/audio/speech', {
+          method: 'POST',
+          headers: { Authorization: 'Bearer ' + env.GROQ_API_KEY, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: 'playai-tts', voice: 'Arista-PlayAI',
+            input: String(texto).slice(0, 800), response_format: 'wav'
+          })
+        });
+        if (!r.ok) return json({ error: 'tts ' + r.status + ': ' + (await r.text()).slice(0, 200) }, 502);
+        return new Response(r.body, { headers: { 'Content-Type': 'audio/wav', ...cors } });
+      }
+
       return json({ error: 'no existe' }, 404);
     } catch (e) {
       return json({ error: String(e.message || e).slice(0, 300) }, 500);
