@@ -87,6 +87,9 @@ const Voz = (() => {
     if (!('speechSynthesis' in window)) { if (opciones.alTerminar) opciones.alTerminar(); return; }
     speechSynthesis.cancel();
     if (!vozEN) eligeVoz();
+    // Sin voz inglesa instalada, mejor callar: la voz por defecto de esta
+    // maquina es espanola y leia "Hi" como "i". Silencio antes que eso.
+    if (!vozEN) { if (opciones.alTerminar) opciones.alTerminar(); return; }
     const u = new SpeechSynthesisUtterance(texto);
     u.lang = 'en-US';
     if (vozEN) u.voice = vozEN;
