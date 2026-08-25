@@ -20,7 +20,7 @@ const CURSO = vm.runInContext('CURSO', ctx);
 
 // Palabras estructurales que no cuentan como "contenido" (números, nombres
 // propios de los ejercicios y signos ya filtrados por la tokenización).
-const LIBRES = new Set(['a', 'an', 'the', 'very', 'much', 'oh', 'o']);
+const LIBRES = new Set(['a', 'an', 'the', 'very', 'much', 'oh', 'o', 'aria', 'andrew']);
 
 const token = (t) => String(t).replace(/\{TU\}/g, 'Alex').toLowerCase().replace(/’/g, "'").replace(/[^a-z' ]+/g, ' ').split(/\s+/).filter(Boolean);
 
@@ -80,7 +80,12 @@ for (const u of CURSO) {
   for (const l of u.lecciones) {
     // lo que la leccion presenta cuenta como enseñado ANTES de revisar su
     // escena: la escena es justamente donde se presenta
-    (l.nuevas || []).forEach((i) => { ensena(u.vocab[i].en); if (u.vocab[i].ej) ensena(u.vocab[i].ej); });
+    (l.nuevas || []).forEach((i) => {
+      const v = u.vocab[i];
+      ensena(v.en);
+      if (v.ej) ensena(v.ej);
+      if (v.cambio) { ensena(v.cambio.di); ensena(v.cambio.tu); }
+    });
     (l.regalos || []).forEach((w) => bolsa.add(w));
     if (l.escena) {
       l.escena.lineas.filter((x) => !x.t).forEach((x) => revisa({ tipo: 'escucha', en: x.en }, l.id + ' escena'));

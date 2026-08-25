@@ -42,7 +42,11 @@ const deDialogo = (dlg) => {
   dlg.preguntas.forEach(deEjercicio);
 };
 for (const u of CURSO) {
-  u.vocab.forEach((v) => { mete(v.en); mete(v.ej); });
+  u.vocab.forEach((v) => {
+    mete(v.en); mete(v.ej);
+    // el intercambio de la tarjeta: Aria habla (voz a) y el alumno responde (voz b)
+    if (v.cambio) { mete(v.cambio.di, 'a'); mete(v.cambio.tu, 'b'); }
+  });
   if (u.lecciones) {
     for (const l of u.lecciones) {
       deHTML(l.html);

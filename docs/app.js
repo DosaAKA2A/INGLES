@@ -221,9 +221,36 @@ function resuelveNombre(ej) {
 // NO va en lo que se lee dentro de una frase: las opciones de los ejercicios
 // de completar ("I ___ Dosa" -> am) y las piezas de ordenar, donde una
 // mayuscula a media frase seria un error de ingles.
+// Los dos personajes del curso. Cada uno tiene SU voz: la misma persona suena
+// siempre igual, en las escenas, en los dialogos y en las tarjetas.
+const PERSONAJES = {
+  A: { nombre: 'Aria', voz: 'a', avatar: 'personajes/aria.png' },
+  B: { nombre: 'Andrew', voz: 'b', avatar: 'personajes/andrew.png' }
+};
+function personaje(q) { return PERSONAJES[q] || { nombre: String(q), voz: 'a', avatar: '' }; }
+
+// Cara del personaje. Si aun no hay imagen, la inicial: nada se rompe por
+// faltar un archivo.
+function caraDe(q) {
+  const p = personaje(q);
+  const inicial = p.nombre.charAt(0).toUpperCase();
+  return `<span class="cara cara-${esc(q)}" title="${esc(p.nombre)}">`
+    + (p.avatar ? `<img src="${esc(p.avatar)}" alt="${esc(p.nombre)}" onerror="this.remove()">` : '')
+    + `<b>${esc(inicial)}</b></span>`;
+}
+
+// La cara del alumno: su inicial, sin imagen.
+function caraTuya() {
+  return `<span class="cara cara-tu" title="${esc(tuNombre())}"><b>${esc(tuNombre().charAt(0).toUpperCase())}</b></span>`;
+}
+
 function mayus(t) {
   const s = String(t);
-  return s.charAt(0).toUpperCase() + s.slice(1);
+  // La mayuscula va en la primera LETRA, no en el primer caracter: en
+  // "¿como estas?" el primer caracter es el "¿" y la letra se quedaba abajo.
+  const i = s.search(/\p{L}/u);
+  if (i < 0) return s;
+  return s.slice(0, i) + s.charAt(i).toUpperCase() + s.slice(i + 1);
 }
 
 function esc(t) {
@@ -794,7 +821,7 @@ function corredor({ titulo, ejercicios, repetirFallos, alAcierto, alFallo, alTer
         </div>
         <div class="armado" id="armado"></div>
         <div class="banco" id="banco">${piezas.map((p, i) => `<button class="pieza" data-p="${esc(p)}" data-i="${i}">${esc(p)}</button>`).join('')}</div>
-        <div class="acciones"><button class="btn" id="comprobar" disabled>Comprobar</button></div>`;
+        <div class="pie-accion"><button class="btn ancho acento" id="comprobar" disabled>Comprobar</button></div>`;
     } else if (tipo === 'habla') {
       cuerpo = `<p class="consigna">${consignas.habla}</p>
         <p class="hablar-frase">${botonAudio(ej.en)} ${esc(ej.en)}</p>
@@ -808,7 +835,7 @@ function corredor({ titulo, ejercicios, repetirFallos, alAcierto, alFallo, alTer
       const mezcla = [];
       for (let i = 0; i < izquierda.length; i++) { mezcla.push(izquierda[i], derecha[i]); }
       cuerpo = `<p class="consigna">${consignas.parejas}</p>
-        <div class="parejas">${mezcla.map((c) => `<button class="pareja" data-par="${c.par}" data-lado="${c.lado}">${esc(mayus(c.t))}</button>`).join('')}</div>`;
+        <div class="parejas">${mezcla.map((c) => `<button class="pareja" data-par="${c.par}" data-lado="${c.lado}" data-en="${esc(c.t)}">${esc(mayus(c.t))}</button>`).join('')}</div>`;
     }
 
     vista().innerHTML = cabecera() + chipFase + cuerpo;
@@ -929,8 +956,10 @@ function corredor({ titulo, ejercicios, repetirFallos, alAcierto, alFallo, alTer
         if (elegida.dataset.par === b.dataset.par && elegida.dataset.lado !== b.dataset.lado) {
           elegida.classList.remove('elegida');
           elegida.classList.add('ok'); b.classList.add('ok');
-          const en = elegida.dataset.lado === 'a' ? elegida.textContent : b.textContent;
-          Voz.di(en, { lento: false });
+          // data-en: el texto tal cual esta en el curso. El de pantalla va
+          // capitalizado y no casa con la clave del manifiesto de audio.
+          const lado = elegida.dataset.lado === 'a' ? elegida : b;
+          Voz.di(lado.dataset.en, { lento: false });
           vivas--;
           if (!vivas) resuelve(ej, fallos <= 1, { correcta: 'Parejas unidas con ' + fallos + ' ' + (fallos === 1 ? 'fallo' : 'fallos') });
         } else {
@@ -970,13 +999,17 @@ function corredor({ titulo, ejercicios, repetirFallos, alAcierto, alFallo, alTer
     capa.classList.add('visible');
     document.body.classList.add('con-veredicto');
     if (ok && detalle.di) Voz.di(detalle.di, { lento: false });
+    // El Enter que disparo el veredicto SIGUE burbujeando hasta document, y
+    // este listener nace en mitad de ese viaje: sin la guarda, ese mismo Enter
+    // cerraba el veredicto antes de que se llegara a leer.
+    const nacido = performance.now();
     const cierra = () => {
       capa.remove();
       document.body.classList.remove('con-veredicto');
       document.removeEventListener('keydown', porTecla);
       continuar();
     };
-    const porTecla = (e) => { if (e.key === 'Enter') cierra(); };
+    const porTecla = (e) => { if (e.key === 'Enter' && e.timeStamp > nacido) cierra(); };
     capa.querySelector('#sigue').addEventListener('click', cierra);
     document.addEventListener('keydown', porTecla);
   }

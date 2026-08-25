@@ -131,8 +131,8 @@ function vEscena(unidad, idx) {
   e.lineas.forEach((x, i) => {
     if (x.t) { filas += `<p class="escena-acota">${esc(x.t)}</p>`; return; }
     filas += `<div class="linea ${x.q === 'B' ? 'b' : ''}">
-      <span class="linea-quien">${esc(x.q)}</span>
-      <div class="globo" data-idx="${i}">${esc(x.en)}<span class="globo-es">${esc(x.es)}</span></div>
+      ${caraDe(x.q)}
+      <div class="globo" data-idx="${i}"><span class="globo-quien">${esc(personaje(x.q).nombre)}</span>${esc(x.en)}<span class="globo-es">${esc(x.es)}</span></div>
     </div>`;
   });
   vista().innerHTML = `
@@ -178,6 +178,30 @@ function vEscena(unidad, idx) {
   $('#sigue').addEventListener('click', () => { tocando = false; Voz.calla(); despuesDeEscena(unidad, idx); });
 }
 
+// El ejemplo de una palabra es un INTERCAMBIO: Aria te habla a ti y debajo va
+// lo que responderias tu. Antes era una frase suelta con su propio boton de
+// audio, casi identica al titular de la tarjeta: dos botones para lo mismo.
+function cambioDe(v) {
+  if (!v.cambio) return v.ej ? `<p class="carta-ej">${esc(v.ej)} ${botonAudio(v.ej)}</p>` : '';
+  const p = personaje('A');
+  return `<div class="cambio">
+    <div class="cambio-linea">
+      ${caraDe('A')}
+      <div class="cambio-globo">
+        <span class="cambio-quien">${esc(p.nombre)}</span>
+        ${esc(v.cambio.di)} ${botonAudio(v.cambio.di)}
+      </div>
+    </div>
+    <div class="cambio-linea tu">
+      ${caraTuya()}
+      <div class="cambio-globo">
+        <span class="cambio-quien">Tú</span>
+        ${esc(v.cambio.tu)} ${botonAudio(v.cambio.tu, 'voz-b')}
+      </div>
+    </div>
+  </div>`;
+}
+
 // Fase "Aprende": una tarjeta por palabra nueva, con imagen, audio y ejemplo.
 function vTarjetas(unidad, idx, nuevas, pos) {
   const l = unidad.lecciones[idx];
@@ -196,13 +220,17 @@ function vTarjetas(unidad, idx, nuevas, pos) {
       <p class="carta-es">${esc(mayus(v.es))}</p>
       ${v.uso ? `<p class="carta-uso">${conNombre(v.uso)}</p>` : ''}
       ${v.nota ? `<p class="carta-nota">${conNombre(v.nota)}</p>` : ''}
-      ${v.ej ? `<p class="carta-ej">${esc(v.ej)} ${botonAudio(v.ej)}</p>` : ''}
+      ${cambioDe(v)}
     </div>
     <div class="acciones">
       ${pos > 0 ? `<button class="btn secundario" id="antes">${ICO.atras} Anterior</button>` : ''}
       <button class="btn acento" id="sigue" style="flex:1">${ultima ? (l.html ? 'Ver la explicación' : 'A practicar') : 'Siguiente'}</button>
     </div>`;
   Voz.di(v.en, { lento: AJ.lento });
+  // la linea del alumno suena con la otra voz: en un intercambio, dos personas
+  vista().querySelectorAll('.btn-audio.voz-b').forEach((b) => {
+    b.addEventListener('click', (e) => { e.stopPropagation(); Voz.di(b.dataset.di, { lento: AJ.lento, voz: 'b' }); }, true);
+  });
   $('#salir').addEventListener('click', () => { Voz.calla(); vUnidad(unidad.id); });
   if (pos > 0) $('#antes').addEventListener('click', () => vTarjetas(unidad, idx, nuevas, pos - 1));
   $('#sigue').addEventListener('click', () => {
@@ -275,8 +303,8 @@ function vLeccionDialogo(unidad, idx) {
   let lineas = '';
   dlg.lineas.forEach((x, i) => {
     lineas += `<div class="linea ${x.q === 'B' ? 'b' : ''}">
-      <span class="linea-quien">${esc(x.q)}</span>
-      <div class="globo" data-idx="${i}">${esc(x.en)}<span class="globo-es">${esc(x.es)}</span></div>
+      ${caraDe(x.q)}
+      <div class="globo" data-idx="${i}"><span class="globo-quien">${esc(personaje(x.q).nombre)}</span>${esc(x.en)}<span class="globo-es">${esc(x.es)}</span></div>
     </div>`;
   });
   vista().innerHTML = `

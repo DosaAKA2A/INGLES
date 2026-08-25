@@ -101,6 +101,19 @@ const Voz = (() => {
     reproduce(RUTA_AUDIO + archivo, opciones);
   }
 
+  // Red de seguridad: el manifiesto guarda el texto tal cual esta en el curso
+  // ("hello"), pero la pantalla lo capitaliza. Si alguna vista manda el texto
+  // ya capitalizado, se busca igual en vez de quedarse muda.
+  let mapaMinus = null;
+  function porMinusculas(clave) {
+    if (typeof AUDIO_MAPA === 'undefined') return null;
+    if (!mapaMinus) {
+      mapaMinus = {};
+      for (const k in AUDIO_MAPA) mapaMinus[k.toLowerCase()] = AUDIO_MAPA[k];
+    }
+    return mapaMinus[clave.toLowerCase()] || null;
+  }
+
   // ---- 2. voz de la nube (se engancha desde app.js cuando hay pase) ----
 
   // Voz.nube = async (texto) => urlDeObjeto | null
@@ -172,7 +185,8 @@ const Voz = (() => {
     // `dinamico` salta los pregrabados: el tutor de Conversar habla SIEMPRE con
     // la voz de la nube, para que el saludo y las respuestas sean la misma voz.
     const clave = (opciones.voz === 'b' ? 'b|' : 'a|') + texto;
-    const archivo = !opciones.dinamico && (typeof AUDIO_MAPA !== 'undefined') && (AUDIO_MAPA[clave] || AUDIO_MAPA['a|' + texto]);
+    const archivo = !opciones.dinamico && (typeof AUDIO_MAPA !== 'undefined')
+      && (AUDIO_MAPA[clave] || AUDIO_MAPA['a|' + texto] || porMinusculas(clave) || porMinusculas('a|' + texto));
     if (archivo) { suenaMP3(archivo, opciones); return; }
     if (api.nube) {
       suenaNube(texto, opciones).then((sono) => { if (!sono) suenaSintetizador(texto, opciones); });
