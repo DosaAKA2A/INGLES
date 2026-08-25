@@ -445,6 +445,33 @@ h2 { font-size: 19px; font-weight: 650; letter-spacing: -.025em; margin: 30px 0 
 .oido b.ok { color: var(--bien); }
 .oido b.no { color: var(--mal); }
 
+/* ---- tarjeta de palabra nueva (fase Aprende) ---- */
+
+.carta {
+  background: var(--grafito); border-radius: var(--r-hoja);
+  padding: 34px 26px; text-align: center;
+  box-shadow: var(--sombra-media);
+}
+.carta-imagen {
+  width: min(210px, 52vw); aspect-ratio: 1; object-fit: cover;
+  border-radius: var(--r-caja); margin-bottom: 20px;
+  box-shadow: inset 0 0 0 1px var(--linea);
+}
+.carta-en {
+  font-size: clamp(27px, 6vw, 36px); font-weight: 700; letter-spacing: -.035em;
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+}
+.carta-en .btn-audio { width: 38px; height: 38px; }
+.carta-en .btn-audio svg { width: 16px; height: 16px; }
+.carta-es { color: var(--muted); font-size: 17px; margin-top: 6px; }
+.carta-ej {
+  color: var(--dim); font-style: italic; font-size: 15px; margin-top: 16px;
+  padding-top: 16px; border-top: 1px solid var(--linea);
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.carta-ej .btn-audio { width: 28px; height: 28px; flex: none; }
+.carta-ej .btn-audio svg { width: 12px; height: 12px; }
+
 /* ---- veredicto ---- */
 
 .veredicto {

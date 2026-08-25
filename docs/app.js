@@ -110,6 +110,7 @@ function conectaVozNube() {
 
 function u(uid) {
   if (!P.unidades[uid]) P.unidades[uid] = { lec: {}, practica: 0, examen: -1, ensayo: -1 };
+  if (!P.unidades[uid].lecs) P.unidades[uid].lecs = {};
   return P.unidades[uid];
 }
 
@@ -243,6 +244,10 @@ function anilloSVG(pct) {
 
 function pctUnidad(unidad) {
   const d = u(unidad.id);
+  if (unidad.lecciones) {
+    const hechas = unidad.lecciones.filter((l) => d.lecs[l.id]).length + (examenAprobado(unidad.id) ? 1 : 0);
+    return Math.round((hechas / (unidad.lecciones.length + 1)) * 100);
+  }
   let hecho = 0, total = 4 + (unidad.dialogo ? 1 : 0);
   if (d.lec.vocab) hecho++;
   if (d.lec.gram) hecho++;
@@ -294,6 +299,7 @@ function vInicio() {
 function vUnidad(uid) {
   vistaActual = 'unidad';
   const unidad = CURSO.find((x) => x.id === uid);
+  if (unidad.lecciones) return vUnidadNueva(unidad);
   const d = u(uid);
   const practicaHecha = d.practica >= unidad.ejercicios.length;
   const leccionesListas = d.lec.vocab && d.lec.gram && (!unidad.dialogo || d.lec.dialogo);

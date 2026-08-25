@@ -27,18 +27,28 @@ const deEjercicio = (ej) => {
   if (ej.tipo === 'parejas') ej.pares.forEach((p) => mete(p[0]));
 };
 
+const deHTML = (html) => {
+  for (const m of String(html || '').matchAll(/<span class="ej">(.*?)<\/span>/g)) {
+    mete(m[1].replace(/<[^>]+>/g, ''));
+  }
+};
+const deDialogo = (dlg) => {
+  dlg.lineas.forEach((l) => mete(l.en, l.q === 'B' ? 'b' : 'a'));
+  dlg.preguntas.forEach(deEjercicio);
+};
 for (const u of CURSO) {
   u.vocab.forEach((v) => { mete(v.en); mete(v.ej); });
-  u.gramatica.forEach((g) => {
-    for (const m of g.html.matchAll(/<span class="ej">(.*?)<\/span>/g)) {
-      mete(m[1].replace(/<[^>]+>/g, ''));
+  if (u.lecciones) {
+    for (const l of u.lecciones) {
+      deHTML(l.html);
+      if (l.dialogo) deDialogo(l.dialogo);
+      (l.ejercicios || []).forEach(deEjercicio);
     }
-  });
-  if (u.dialogo) {
-    u.dialogo.lineas.forEach((l) => mete(l.en, l.q === 'B' ? 'b' : 'a'));
-    u.dialogo.preguntas.forEach(deEjercicio);
+  } else {
+    u.gramatica.forEach((g) => deHTML(g.html));
+    if (u.dialogo) deDialogo(u.dialogo);
+    u.ejercicios.forEach(deEjercicio);
   }
-  u.ejercicios.forEach(deEjercicio);
   u.examen.forEach(deEjercicio);
 }
 
