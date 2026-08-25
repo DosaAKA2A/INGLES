@@ -764,3 +764,16 @@ body.con-veredicto .pie-accion { opacity: 0; pointer-events: none; transform: tr
 @media (max-width: 430px) {
   .quiz { grid-template-columns: 1fr; }
 }
+
+/* ---- leccion completada pero con fallos: se avisa sin castigar ---- */
+.nodo.a-medias .nodo-circulo {
+  background: var(--lienzo); color: var(--a-texto);
+  box-shadow: var(--relieve), inset 0 0 0 2.5px var(--a-claro);
+}
+.nodo-sello.afinar { color: var(--a-texto); }
+.nodo-sello.afinar svg { width: 13px; height: 13px; }
+.nota-afinar {
+  margin-top: 18px; padding: 12px 16px; border-radius: 14px;
+  box-shadow: var(--hundido-suave);
+  font-size: 13.5px; font-weight: 700; color: var(--tinta-2);
+}

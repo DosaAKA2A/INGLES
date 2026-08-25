@@ -15,7 +15,8 @@ const CLAVE_AJUSTES = 'ingles-ajustes';
 
 // Cajas del repaso espaciado: días hasta la próxima aparición.
 const CAJAS_DIAS = [0, 1, 3, 7, 14, 30];
-const NOTA_EXAMEN = 70;   // % para aprobar y desbloquear la siguiente unidad
+const NOTA_EXAMEN = 75;   // % para aprobar y desbloquear la siguiente unidad
+const NOTA_DOMINIO = 85;  // % desde el que una lección se considera dominada
 const TANDA_EXAMEN = 10;  // preguntas por examen
 
 // ---- iconos (SVG de línea, estilo Lucide) ----------------------------------
@@ -121,6 +122,7 @@ function conectaVozNube() {
 function u(uid) {
   if (!P.unidades[uid]) P.unidades[uid] = { lec: {}, practica: 0, examen: -1, ensayo: -1 };
   if (!P.unidades[uid].lecs) P.unidades[uid].lecs = {};
+  if (!P.unidades[uid].notas) P.unidades[uid].notas = {};   // mejor nota por lección
   return P.unidades[uid];
 }
 

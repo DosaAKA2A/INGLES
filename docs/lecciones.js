@@ -46,12 +46,21 @@ function vUnidadNueva(unidad) {
   let filas = '';
   unidad.lecciones.forEach((l, i) => {
     const hecha = !!d.lecs[l.id];
+    const nota = d.notas[l.id];
+    // Terminada NO es lo mismo que dominada: si hubo fallos se dice, pero sin
+    // regañar — se invita a redondearla, no se bloquea nada.
+    const dominada = hecha && (nota == null || nota >= NOTA_DOMINIO);
     const abierta = i === 0 || !!d.lecs[unidad.lecciones[i - 1].id];
     const actual = abierta && !hecha;
-    const sub = l.sub || (l.tipo === 'vocab' ? (l.nuevas || []).length + ' palabras nuevas' : '');
-    filas += `<button class="nodo ${hecha ? 'hecho' : ''} ${actual ? 'actual' : ''}" data-leccion="${i}" ${abierta ? '' : 'disabled'}>
+    const base = l.sub || (l.tipo === 'vocab' ? (l.nuevas || []).length + ' palabras nuevas' : '');
+    const sub = hecha
+      ? (dominada ? 'Dominada' + (nota != null ? ' · ' + nota + '%' : '') : 'Completada al ' + nota + '% · puedes redondearla')
+      : base;
+    filas += `<button class="nodo ${dominada ? 'hecho' : ''} ${hecha && !dominada ? 'a-medias' : ''} ${actual ? 'actual' : ''}" data-leccion="${i}" ${abierta ? '' : 'disabled'}>
       <span class="nodo-circulo">${imagenDeLeccion(l)}
-        ${hecha ? `<span class="nodo-sello">${ICO.check}</span>` : (abierta ? '' : `<span class="nodo-sello candado">${ICO.candado}</span>`)}
+        ${dominada ? `<span class="nodo-sello">${ICO.check}</span>`
+          : (hecha ? `<span class="nodo-sello afinar">${ICO.refresco}</span>`
+          : (abierta ? '' : `<span class="nodo-sello candado">${ICO.candado}</span>`))}
       </span>
       <span class="nodo-info"><span class="nodo-titulo">${esc(l.titulo)}</span><span class="nodo-sub">${esc(sub)}</span></span>
     </button>`;
@@ -77,7 +86,11 @@ function vUnidadNueva(unidad) {
         ${d.ensayo >= 0 ? `<span class="nodo-extra">${d.ensayo}</span>` : ''}
       </button>
     </div>
-    ${todasHechas ? '' : '<p class="gris chica" style="margin-top:16px">Las lecciones se abren en orden; el examen, al terminarlas todas.</p>'}`;
+    ${todasHechas
+      ? (unidad.lecciones.some((l) => d.notas[l.id] != null && d.notas[l.id] < NOTA_DOMINIO)
+        ? '<p class="nota-afinar">Puedes repetir las lecciones marcadas para redondearlas. No es obligatorio: el examen ya está abierto.</p>'
+        : '')
+      : '<p class="gris chica" style="margin-top:16px">Las lecciones se abren en orden; el examen, al terminarlas todas.</p>'}`;
 
   $('#volver').addEventListener('click', vInicio);
   vista().querySelectorAll('[data-leccion]').forEach((b) => {
@@ -169,13 +182,17 @@ function cierraLeccion(unidad, idx, aciertos, total) {
   const d = u(unidad.id);
   const l = unidad.lecciones[idx];
   const primeraVez = !d.lecs[l.id];
+  const nota = Math.round((aciertos / total) * 100);
   d.lecs[l.id] = 1;
+  d.notas[l.id] = Math.max(d.notas[l.id] || 0, nota);   // se guarda la mejor
   if (primeraVez) daXP(20); else guarda();
+
   const hay = idx + 1 < unidad.lecciones.length;
-  resumenTanda(aciertos, total,
-    hay ? `Lección lista. Sigue: ${unidad.lecciones[idx + 1].titulo}.`
-        : 'Todas las lecciones listas: el examen quedó abierto.',
-    () => vUnidad(unidad.id));
+  const siguiente = hay ? `Sigue: ${unidad.lecciones[idx + 1].titulo}.` : 'El examen quedó abierto.';
+  const mensaje = d.notas[l.id] >= NOTA_DOMINIO
+    ? `Lección dominada. ${siguiente}`
+    : `Lección completada. Quedaron cosas por afinar: puedes repetirla cuando quieras para redondearla. ${siguiente}`;
+  resumenTanda(aciertos, total, mensaje, () => vUnidad(unidad.id));
 }
 
 // ---- leccion de dialogo -----------------------------------------------------
