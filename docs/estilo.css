@@ -103,7 +103,7 @@ body.en-leccion .tabs { display: none; }
 }
 .marca { display: flex; align-items: center; gap: 10px; cursor: pointer; }
 .marca-en {
-  width: 30px; height: 30px; display: block;
+  height: 30px; width: auto; display: block;
   filter: drop-shadow(.12rem .12rem .25rem var(--oscura));
   transition: transform var(--dur) var(--spring-fuerte);
 }
@@ -860,7 +860,7 @@ body.con-veredicto .pie-accion { opacity: 0; pointer-events: none; transform: tr
 
 .intro-logo {
   position: relative; display: block;
-  width: 72px; height: 72px;
+  height: 112px; width: auto;
   /* la sombra sigue el contorno de la forma, no una caja */
   filter: drop-shadow(.4rem .4rem .8rem var(--oscura)) drop-shadow(-.2rem -.2rem .6rem var(--luz));
   opacity: 0; transform: scale(0);
@@ -885,7 +885,7 @@ body.con-veredicto .pie-accion { opacity: 0; pointer-events: none; transform: tr
 @media (min-width: 700px) { .intro-nombre { bottom: 10%; } }
 
 @media (max-width: 420px) {
-  .intro-logo { width: 62px; height: 62px; }
+  .intro-logo { height: 96px; width: auto; }
   .intro-anillos span:nth-child(1) { width: 132px; height: 132px; }
   .intro-anillos span:nth-child(2) { width: 200px; height: 200px; }
   .intro-anillos span:nth-child(3) { width: 268px; height: 268px; }
