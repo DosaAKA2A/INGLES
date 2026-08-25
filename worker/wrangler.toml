@@ -7,3 +7,7 @@ compatibility_date = "2026-08-01"
 [[kv_namespaces]]
 binding = "INGLES_KV"
 id = "1ca607ab162949d2b3df4190ec618805"
+
+# Voz neuronal de Cloudflare (Workers AI) para el texto dinamico del curso.
+[ai]
+binding = "AI"
