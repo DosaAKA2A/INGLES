@@ -217,7 +217,7 @@ CURSO.push({
       ],
       practica: [
         { tipo: 'parejas', pares: [['yes', 'sí'], ['no', 'no'], ['How are you?', '¿cómo estás?'], ['and you?', '¿y tú?']] },
-        { tipo: 'opcion', q: 'Te preguntan: "What\'s your name?" ¿Qué respondes?', audio: "What's your name?", opciones: ['My name is Aria.', "I'm fine.", 'Goodbye!'], r: 0, di: 'My name is Aria', vocabIdx: 18,
+        { tipo: 'opcion', q: 'Te preguntan: "What\'s your name?" ¿Qué respondes?', audio: "What's your name?", opciones: ['My name is {TU}.', "I'm fine.", 'Goodbye!'], r: 0, di: 'My name is {TU}.', vocabIdx: 18,
           por: 'Te preguntan el NOMBRE: respondes con <b>my name is...</b>' },
         { tipo: 'huecos', antes: "I'm", despues: ', thanks.', opciones: ['fine', 'name', 'yes'], r: 0,
           por: "<b>I'm fine</b> = estoy bien. La respuesta de cortesía de siempre." },

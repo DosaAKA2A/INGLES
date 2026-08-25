@@ -33,7 +33,25 @@ const SOSPECHOSOS = /\b(dosa|alex|eduardo|ana|tom)\b/i;
 const fallos = [];
 const anota = (donde, que) => fallos.push(donde + ': ' + que);
 
+// El enunciado te habla a TI: entonces la respuesta correcta se presenta con
+// TU nombre, no con el de un personaje del curso.
+const NOMBRES_PJ = ['Aria', 'Andrew', 'Ana', 'Tom'];
+function revisaPersona(ej, donde) {
+  if (ej.tipo !== 'opcion' || !ej.opciones) return;
+  const q = String(ej.q || '');
+  const teHabla = /te (preguntan|dicen|saludan)/i.test(q) || /qu[eé] (respondes|dices|contestas)/i.test(q);
+  if (!teHabla) return;
+  const correcta = String(ej.opciones[ej.r] || '');
+  const m = correcta.match(/(my name is|i am|i'm)\s+([A-Za-z]+)/i);
+  if (!m) return;
+  const nombre = m[2];
+  if (nombre === '{TU}') return;
+  if (!NOMBRES_PJ.includes(nombre)) return;    // 'I'm fine' y demas, no es un nombre
+  anota(donde, 'te preguntan a TI pero la respuesta se presenta como "' + nombre + '" → "' + correcta + '"');
+}
+
 function revisa(ej, donde) {
+  revisaPersona(ej, donde);
   // solo los que el alumno PRODUCE tecleando o hablando
   const esperadas = ej.tipo === 'traduce' ? (ej.en || [])
     : (ej.tipo === 'escucha' || ej.tipo === 'ordena' || ej.tipo === 'habla') ? [ej.en] : null;
