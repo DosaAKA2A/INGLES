@@ -214,6 +214,11 @@ function resuelveNombre(ej) {
   return copia;
 }
 
+// Primera letra en mayuscula. Va en los terminos y frases que se leen SUELTOS
+// (opciones de respuesta, parejas, la palabra de la tarjeta, los enunciados).
+// NO va en lo que se lee dentro de una frase: las opciones de los ejercicios
+// de completar ("I ___ Dosa" -> am) y las piezas de ordenar, donde una
+// mayuscula a media frase seria un error de ingles.
 function mayus(t) {
   const s = String(t);
   return s.charAt(0).toUpperCase() + s.slice(1);
@@ -751,7 +756,7 @@ function corredor({ titulo, ejercicios, repetirFallos, alAcierto, alFallo, alTer
       cuerpo = `<p class="consigna">${consignas[tipo]}</p>
         ${ej.audio ? ilustracionGrande(ej.audio) : ''}
         <p class="enunciado">${ej.audio ? botonAudio(ej.audio) : ''}${enun}</p>
-        <div class="opciones">${ej.opciones.map((o, i) => `<button class="opcion" data-i="${i}">${esc(mayus(o))}</button>`).join('')}</div>`;
+        <div class="opciones">${ej.opciones.map((o, i) => `<button class="opcion" data-i="${i}">${esc(tipo === 'huecos' ? o : mayus(o))}</button>`).join('')}</div>`;
     } else if (tipo === 'traduce') {
       cuerpo = `<p class="consigna">${consignas.traduce}</p>
         ${ilustracionGrande(ej.en[0])}
@@ -783,7 +788,7 @@ function corredor({ titulo, ejercicios, repetirFallos, alAcierto, alFallo, alTer
       const mezcla = [];
       for (let i = 0; i < izquierda.length; i++) { mezcla.push(izquierda[i], derecha[i]); }
       cuerpo = `<p class="consigna">${consignas.parejas}</p>
-        <div class="parejas">${mezcla.map((c) => `<button class="pareja" data-par="${c.par}" data-lado="${c.lado}">${esc(c.lado === 'b' ? mayus(c.t) : c.t)}</button>`).join('')}</div>`;
+        <div class="parejas">${mezcla.map((c) => `<button class="pareja" data-par="${c.par}" data-lado="${c.lado}">${esc(mayus(c.t))}</button>`).join('')}</div>`;
     }
 
     vista().innerHTML = cabecera() + cuerpo;
