@@ -648,3 +648,142 @@ h2 { font-size: 19px; font-weight: 650; letter-spacing: -.025em; margin: 30px 0 
   .parejas { gap: 6px; }
   .msg { max-width: 90%; }
 }
+
+/* ============ pulido "nivel app de idiomas" (referencia Busuu de Dosa) ===== */
+
+/* transicion de entrada de cada vista */
+main.vista-entra > * { animation: vista-sube .32s var(--spring) backwards; }
+@keyframes vista-sube {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* dentro de una leccion (corredor o celebracion) desaparece el riel */
+body.en-leccion .tabs { display: none; }
+body.en-leccion { padding-bottom: 130px; }
+
+/* pie de accion fijo: el boton grande de abajo, como Continuar de Busuu */
+.pie-accion {
+  position: fixed; left: 0; right: 0; z-index: 24;
+  bottom: calc(var(--marco) + env(safe-area-inset-bottom));
+  padding: 0 var(--gut);
+  display: flex; justify-content: center;
+}
+.pie-accion .btn { max-width: var(--maxw); width: 100%; padding: 16px 26px; font-size: 16px; }
+
+/* aplastamiento al pulsar: todo boton responde al dedo */
+.btn:active, .opcion:active:not(:disabled), .pieza:active, .pareja:active, .globo:active { transform: scale(.97); }
+.btn-audio:active { transform: scale(.9); }
+
+/* la opcion correcta da un botecito */
+.opcion.ok { animation: acierto .4s var(--spring); }
+@keyframes acierto {
+  30% { transform: scale(1.025); }
+  100% { transform: none; }
+}
+
+/* ---- hoja de veredicto ---- */
+.veredicto-inner { align-items: flex-start; padding: 18px 18px 18px 20px; }
+.veredicto-cara {
+  flex: none; display: grid; place-items: center;
+  width: 40px; height: 40px; border-radius: 50%;
+}
+.veredicto-cara svg { width: 20px; height: 20px; }
+.veredicto.ok .veredicto-cara { background: var(--bien-lavado); }
+.veredicto.ok .veredicto-cara svg { stroke: var(--bien); }
+.veredicto.no .veredicto-cara { background: var(--mal-lavado); }
+.veredicto.no .veredicto-cara svg { stroke: var(--mal); }
+.veredicto-titulo { font-size: 17px; }
+.veredicto-detalle { font-size: 14.5px; color: var(--texto); margin-top: 4px; }
+.veredicto-detalle .vd-resp { color: var(--dim); }
+.veredicto-pista {
+  margin-top: 8px; padding: 8px 12px; border-radius: 10px;
+  background: var(--grafito-2); font-size: 13.5px; color: var(--muted);
+}
+.veredicto .btn { align-self: center; }
+.btn.mal { background: var(--mal); color: #fff; }
+
+/* ---- celebracion ---- */
+.celebra { position: relative; text-align: center; padding-top: 6vh; }
+.celebra-cara {
+  display: grid; place-items: center; margin: 0 auto 22px;
+  width: 92px; height: 92px; border-radius: 50%;
+  animation: celebra-pop .5s var(--spring) backwards .1s;
+}
+.celebra-cara.bien { background: var(--bien-lavado); }
+.celebra-cara.bien svg { stroke: var(--bien); width: 42px; height: 42px; }
+.celebra-cara.meh { background: rgba(34, 54, 52, .07); }
+.celebra-cara.meh svg { stroke: var(--muted); width: 40px; height: 40px; }
+@keyframes celebra-pop {
+  from { opacity: 0; transform: scale(.4); }
+  to { opacity: 1; transform: none; }
+}
+.celebra-titulo { margin-bottom: 10px; }
+.celebra-stats {
+  display: flex; gap: 12px; justify-content: center; margin-top: 30px;
+}
+.celebra-stat {
+  background: var(--grafito); border-radius: var(--r-hoja);
+  box-shadow: var(--sombra-baja); padding: 18px 28px; min-width: 150px;
+  animation: vista-sube .35s var(--spring) backwards .25s;
+}
+.celebra-stat:last-child { animation-delay: .35s; }
+.cifra-chica { font-size: .45em; color: var(--dim); }
+
+/* confeti finito: cae, gira y se acaba */
+.confeti { position: absolute; inset: -20px 0 auto; height: 0; pointer-events: none; }
+.confeti i {
+  position: absolute; top: -10px; width: 8px; height: 13px; border-radius: 2px;
+  opacity: 0; animation-name: confeti-cae; animation-timing-function: ease-in;
+  animation-fill-mode: forwards;
+}
+@keyframes confeti-cae {
+  0% { opacity: 1; transform: translateY(0) rotate(0); }
+  100% { opacity: 0; transform: translateY(46vh) rotate(560deg); }
+}
+
+/* ---- el camino de lecciones (nodos) ---- */
+.camino { margin-top: 26px; position: relative; }
+.nodo {
+  position: relative; display: flex; align-items: center; gap: 18px;
+  width: 100%; text-align: left; padding: 13px 8px;
+  border-radius: var(--r-caja);
+  transition: background var(--dur) var(--ease);
+}
+.nodo:hover:not(:disabled) { background: rgba(34, 54, 52, .045); }
+.nodo:disabled { cursor: default; }
+.nodo:disabled .nodo-info { opacity: .45; }
+/* el hilo que une los nodos */
+.nodo + .nodo::before {
+  content: ""; position: absolute; left: 39px; top: -14px; height: 26px;
+  border-left: 3px solid rgba(34, 54, 52, .12); border-radius: 3px;
+}
+.nodo.hecho + .nodo::before { border-color: rgba(40, 188, 169, .55); }
+
+.nodo-circulo {
+  position: relative; flex: none; display: grid; place-items: center;
+  width: 62px; height: 62px; border-radius: 50%;
+  background: var(--grafito); box-shadow: var(--sombra-baja), inset 0 0 0 1px var(--linea);
+}
+.nodo-circulo svg { width: 24px; height: 24px; stroke: var(--muted); }
+.nodo-circulo img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+.nodo.hecho .nodo-circulo { box-shadow: var(--sombra-baja), inset 0 0 0 3px var(--turquesa); }
+.nodo.actual .nodo-circulo { box-shadow: var(--sombra-media), inset 0 0 0 3px var(--turquesa); }
+.nodo.actual .nodo-circulo svg { stroke: var(--acento-hondo); }
+.nodo:disabled .nodo-circulo { background: var(--grafito-2); box-shadow: inset 0 0 0 1px var(--linea); }
+.nodo:disabled .nodo-circulo svg { stroke: var(--dim); opacity: .6; }
+
+.nodo-sello {
+  position: absolute; right: -3px; bottom: -3px;
+  display: grid; place-items: center;
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--turquesa); box-shadow: 0 0 0 3px var(--bg);
+}
+.nodo-sello svg { width: 13px; height: 13px; stroke: var(--acento-tinta); }
+.nodo-sello.candado { background: var(--grafito); box-shadow: 0 0 0 3px var(--bg), inset 0 0 0 1px var(--linea); }
+.nodo-sello.candado svg { stroke: var(--dim); }
+
+.nodo-info { min-width: 0; }
+.nodo-titulo { font-weight: 650; font-size: 16.5px; letter-spacing: -.02em; display: block; }
+.nodo-sub { font-size: 13.5px; color: var(--dim); display: block; margin-top: 1px; }
+.nodo-extra { margin-left: auto; flex: none; font: 600 13px/1 var(--mono); color: var(--bien); }

@@ -32,15 +32,28 @@ function vUnidadNueva(unidad) {
   const todasHechas = unidad.lecciones.every((l) => d.lecs[l.id]);
   const iconoDe = { vocab: ICO.libro, gramatica: ICO.regla, dialogo: ICO.charla, practica: ICO.pesa };
 
+  // El camino de nodos: cada leccion es un circulo en la ruta, como en las
+  // apps de idiomas. Con imagen si alguna de sus palabras la tiene; si no, el
+  // icono del tipo. Sello: check al terminar, candado si aun no toca.
+  const imagenDeLeccion = (l) => {
+    for (const i of (l.nuevas || [])) {
+      const f = archivoImagen(unidad.vocab[i].en);
+      if (f) return `<img src="img/${f}" alt="">`;
+    }
+    return iconoDe[l.tipo] || ICO.libro;
+  };
+
   let filas = '';
   unidad.lecciones.forEach((l, i) => {
     const hecha = !!d.lecs[l.id];
     const abierta = i === 0 || !!d.lecs[unidad.lecciones[i - 1].id];
+    const actual = abierta && !hecha;
     const sub = l.sub || (l.tipo === 'vocab' ? (l.nuevas || []).length + ' palabras nuevas' : '');
-    filas += `<button class="bloque ${hecha ? 'hecho' : ''} ${abierta ? '' : 'cerrado'}" data-leccion="${i}" ${abierta ? '' : 'disabled'}>
-      <span class="bloque-icono">${iconoDe[l.tipo] || ICO.libro}</span>
-      <span><span class="bloque-titulo">${esc(l.titulo)}</span><br><span class="bloque-sub">${esc(sub)}</span></span>
-      <span class="bloque-extra ${hecha ? 'bien' : ''}">${hecha ? ICO.check : String(i + 1).padStart(2, '0')}</span>
+    filas += `<button class="nodo ${hecha ? 'hecho' : ''} ${actual ? 'actual' : ''}" data-leccion="${i}" ${abierta ? '' : 'disabled'}>
+      <span class="nodo-circulo">${imagenDeLeccion(l)}
+        ${hecha ? `<span class="nodo-sello">${ICO.check}</span>` : (abierta ? '' : `<span class="nodo-sello candado">${ICO.candado}</span>`)}
+      </span>
+      <span class="nodo-info"><span class="nodo-titulo">${esc(l.titulo)}</span><span class="nodo-sub">${esc(sub)}</span></span>
     </button>`;
   });
 
@@ -49,17 +62,19 @@ function vUnidadNueva(unidad) {
     <span class="etiqueta">Unidad ${String(CURSO.findIndex((x) => x.id === unidad.id) + 1).padStart(2, '0')} &middot; ${unidad.nivel}</span>
     <h1>${esc(unidad.titulo)}</h1>
     <p class="entradilla">${esc(unidad.descripcion)}</p>
-    <div class="bloques">
+    <div class="camino">
       ${filas}
-      <button class="bloque ${d.examen >= NOTA_EXAMEN ? 'hecho' : ''} ${todasHechas ? '' : 'cerrado'}" data-accion="examen" ${todasHechas ? '' : 'disabled'}>
-        <span class="bloque-icono">${ICO.diploma}</span>
-        <span><span class="bloque-titulo">Examen</span><br><span class="bloque-sub">${TANDA_EXAMEN} preguntas de lo visto. Con ${NOTA_EXAMEN}% se abre la siguiente unidad</span></span>
-        <span class="bloque-extra ${d.examen >= NOTA_EXAMEN ? 'bien' : ''}">${d.examen >= 0 ? d.examen + '%' : (todasHechas ? '' : ICO.candado.replace('<svg', '<svg class="candado"'))}</span>
+      <button class="nodo ${d.examen >= NOTA_EXAMEN ? 'hecho' : (todasHechas ? 'actual' : '')}" data-accion="examen" ${todasHechas ? '' : 'disabled'}>
+        <span class="nodo-circulo">${ICO.diploma}
+          ${d.examen >= NOTA_EXAMEN ? `<span class="nodo-sello">${ICO.check}</span>` : (todasHechas ? '' : `<span class="nodo-sello candado">${ICO.candado}</span>`)}
+        </span>
+        <span class="nodo-info"><span class="nodo-titulo">Examen</span><span class="nodo-sub">${TANDA_EXAMEN} preguntas de lo visto. Con ${NOTA_EXAMEN}% se abre la siguiente unidad</span></span>
+        ${d.examen >= 0 ? `<span class="nodo-extra">${d.examen}%</span>` : ''}
       </button>
-      <button class="bloque" data-accion="ensayo">
-        <span class="bloque-icono">${ICO.pluma}</span>
-        <span><span class="bloque-titulo">Ensayo</span><br><span class="bloque-sub">${esc(unidad.ensayo.resumen)}</span></span>
-        <span class="bloque-extra ${d.ensayo >= 60 ? 'bien' : ''}">${d.ensayo >= 0 ? d.ensayo : ''}</span>
+      <button class="nodo" data-accion="ensayo">
+        <span class="nodo-circulo">${ICO.pluma}</span>
+        <span class="nodo-info"><span class="nodo-titulo">Ensayo</span><span class="nodo-sub">${esc(unidad.ensayo.resumen)}</span></span>
+        ${d.ensayo >= 0 ? `<span class="nodo-extra">${d.ensayo}</span>` : ''}
       </button>
     </div>
     ${todasHechas ? '' : '<p class="gris chica" style="margin-top:16px">Las lecciones se abren en orden; el examen, al terminarlas todas.</p>'}`;

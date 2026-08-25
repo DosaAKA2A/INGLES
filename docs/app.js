@@ -35,6 +35,7 @@ const ICO = {
   pluma: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>',
   mic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2"/><path d="M12 19v3"/></svg>',
   check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+  equis: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>',
   refresco: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36L21 8"/><path d="M21 3v5h-5"/></svg>',
   candado: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>'
 };
@@ -627,6 +628,7 @@ function corredor({ titulo, ejercicios, repetirFallos, alAcierto, alFallo, alTer
   }
 
   function resuelve(ej, ok, detalle) {
+    if (ej.pista) detalle.pista = ej.pista;
     const esRepe = yaRepetido.has(ej);
     hechos = Math.min(hechos + 1, totalPlan);
     if (ok) {
@@ -664,12 +666,12 @@ function corredor({ titulo, ejercicios, repetirFallos, alAcierto, alFallo, alTer
         ${ilustracionGrande(ej.en[0])}
         <p class="enunciado">${esc(ej.es)}</p>
         <input class="respuesta-texto" id="resp" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="In English...">
-        <div class="acciones"><button class="btn acento" id="comprobar">Comprobar</button></div>`;
+        <div class="pie-accion"><button class="btn ancho acento" id="comprobar">Comprobar</button></div>`;
     } else if (tipo === 'escucha') {
       cuerpo = `<p class="consigna">${consignas.escucha}</p>
         <p class="enunciado">${botonAudio(ej.en)}<button class="btn-audio" data-di-lento="${esc(ej.en)}" title="Más despacio">${ICO.tortuga}</button></p>
         <input class="respuesta-texto" id="resp" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Type what you hear...">
-        <div class="acciones"><button class="btn acento" id="comprobar">Comprobar</button></div>`;
+        <div class="pie-accion"><button class="btn ancho acento" id="comprobar">Comprobar</button></div>`;
     } else if (tipo === 'ordena') {
       const piezas = baraja(ej.en.split(' ').concat(ej.extra || []));
       cuerpo = `<p class="consigna">${consignas.ordena}</p>
@@ -683,7 +685,7 @@ function corredor({ titulo, ejercicios, repetirFallos, alAcierto, alFallo, alTer
         <p class="hablar-fon gris">${esc(ej.es)}</p>
         <button class="btn-mic" id="mic">${ICO.mic} Toca y habla</button>
         <div class="oido" id="oido"></div>
-        <div class="acciones"><button class="btn secundario" id="saltar">No puedo hablar ahora</button></div>`;
+        <div class="pie-accion"><button class="btn ancho secundario" id="saltar">No puedo hablar ahora</button></div>`;
     } else if (tipo === 'parejas') {
       const izquierda = ej.pares.map((p, i) => ({ t: p[0], par: i, lado: 'a' }));
       const derecha = baraja(ej.pares.map((p, i) => ({ t: p[1], par: i, lado: 'b' })));
@@ -815,13 +817,16 @@ function corredor({ titulo, ejercicios, repetirFallos, alAcierto, alFallo, alTer
     const capa = document.createElement('div');
     capa.className = 'veredicto ' + (ok ? 'ok' : 'no');
     capa.innerHTML = `<div class="veredicto-inner">
+      <div class="veredicto-cara">${ok ? ICO.check : ICO.equis}</div>
       <div class="veredicto-texto">
         <div class="veredicto-titulo">${ok ? 'Correcto' : 'No es así'}</div>
-        <div class="veredicto-detalle">${detalle.nota ? esc(detalle.nota) : (ok ? '' : 'Respuesta: ' + esc(detalle.correcta))}
-          ${detalle.di ? ' ' + botonAudio(detalle.di) : ''}</div>
+        ${detalle.nota ? `<div class="veredicto-detalle">${esc(detalle.nota)}</div>` : ''}
+        ${(!ok || detalle.di) ? `<div class="veredicto-detalle">${ok ? '' : '<span class="vd-resp">Respuesta:</span> <b>' + esc(detalle.correcta) + '</b>'}${detalle.di ? ' ' + botonAudio(detalle.di) : ''}</div>` : ''}
+        ${detalle.pista ? `<div class="veredicto-pista">${esc(detalle.pista)}</div>` : ''}
       </div>
-      <button class="btn acento" id="sigue">Seguir</button>
+      <button class="btn ${ok ? 'acento' : 'mal'}" id="sigue">Seguir</button>
     </div>`;
+    if (navigator.vibrate) { try { navigator.vibrate(ok ? 12 : [40, 50, 40]); } catch (e) {} }
     document.body.appendChild(capa);
     // Reflow forzado en vez de requestAnimationFrame: rAF no dispara en una
     // pestana de fondo y el veredicto se quedaba fuera de pantalla hasta que
@@ -841,14 +846,41 @@ function corredor({ titulo, ejercicios, repetirFallos, alAcierto, alFallo, alTer
 function resumenTanda(aciertos, total, mensaje, alSeguir) {
   const pct = Math.round((aciertos / total) * 100);
   const clase = pct >= NOTA_EXAMEN ? 'verde' : (pct < 50 ? 'rojo' : 'azul');
+  const bien = pct >= NOTA_EXAMEN;
+
+  // confeti FINITO (cae y se acaba; nada de animaciones infinitas)
+  let confeti = '';
+  if (bien) {
+    const colores = ['#28bca9', '#fb4673', '#99cccc', '#223634'];
+    for (let i = 0; i < 34; i++) {
+      confeti += `<i style="left:${(Math.random() * 100).toFixed(1)}%;background:${colores[i % 4]};animation-delay:${(Math.random() * .5).toFixed(2)}s;animation-duration:${(1.3 + Math.random()).toFixed(2)}s"></i>`;
+    }
+  }
+
   vista().innerHTML = `
-    <div class="espacio"></div>
-    <div class="ficha">
-      <span class="etiqueta">${aciertos} de ${total} correctas</span>
-      <div class="puntaje-grande ${clase}">${pct}<span class="gris" style="font-size:.45em">%</span></div>
-      <p class="entradilla">${esc(mensaje)}</p>
+    <div class="celebra">
+      ${bien ? `<div class="confeti" aria-hidden="true">${confeti}</div>` : ''}
+      <div class="celebra-cara ${bien ? 'bien' : 'meh'}">${bien ? ICO.diploma : ICO.refresco}</div>
+      <h1 class="celebra-titulo">${bien ? '¡Así se hace!' : 'Casi, casi'}</h1>
+      <p class="entradilla centrado" style="margin:0 auto">${esc(mensaje)}</p>
+      <div class="celebra-stats">
+        <div class="celebra-stat"><span class="etiqueta" style="margin:0 0 6px">Puntuación</span><div class="puntaje-grande ${clase}" id="cifra">0<span class="cifra-chica">%</span></div></div>
+        <div class="celebra-stat"><span class="etiqueta" style="margin:0 0 6px">Correctas</span><div class="puntaje-grande">${aciertos}<span class="cifra-chica">/${total}</span></div></div>
+      </div>
     </div>
-    <button class="btn ancho acento" id="seguir">Seguir</button>`;
+    <div class="pie-accion"><button class="btn ancho acento" id="seguir">Continuar</button></div>`;
+
+  // la cifra sube sola hasta el resultado
+  const cifra = $('#cifra');
+  const arranque = performance.now();
+  const sube = (t) => {
+    const f = Math.min(1, (t - arranque) / 900);
+    const suave = 1 - Math.pow(1 - f, 3);
+    cifra.innerHTML = Math.round(pct * suave) + '<span class="cifra-chica">%</span>';
+    if (f < 1) requestAnimationFrame(sube);
+  };
+  requestAnimationFrame(sube);
+  if (navigator.vibrate && bien) { try { navigator.vibrate([15, 60, 15]); } catch (e) {} }
   $('#seguir').addEventListener('click', alSeguir);
 }
 
@@ -1101,6 +1133,17 @@ function modalPase(despues) {
 }
 
 // ---- arranque ---------------------------------------------------------------
+
+// Transicion de entrada en cada cambio de vista, y "modo leccion": dentro del
+// corredor y de la celebracion las tabs se esconden, como en las apps de
+// idiomas — solo la tarea y el boton de abajo.
+new MutationObserver(() => {
+  const v = vista();
+  document.body.classList.toggle('en-leccion', !!v.querySelector('.ej-cabecera, .celebra'));
+  v.classList.remove('vista-entra');
+  void v.offsetWidth;
+  v.classList.add('vista-entra');
+}).observe(vista(), { childList: true });
 
 pintaBarra();
 conectaVozNube();
