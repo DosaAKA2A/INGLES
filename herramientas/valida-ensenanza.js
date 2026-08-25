@@ -22,7 +22,7 @@ const CURSO = vm.runInContext('CURSO', ctx);
 // propios de los ejercicios y signos ya filtrados por la tokenización).
 const LIBRES = new Set(['a', 'an', 'the', 'very', 'much', 'oh', 'o']);
 
-const token = (t) => String(t).toLowerCase().replace(/’/g, "'").replace(/[^a-z' ]+/g, ' ').split(/\s+/).filter(Boolean);
+const token = (t) => String(t).replace(/\{TU\}/g, 'Alex').toLowerCase().replace(/’/g, "'").replace(/[^a-z' ]+/g, ' ').split(/\s+/).filter(Boolean);
 
 function palabrasDe(frase, bolsa) {
   // primero se comen las frases hechas ya enseñadas (see you later, nice to

@@ -193,13 +193,34 @@ let vistaActual = 'inicio';
 
 // Primera letra en mayúscula respetando lo que ya viene capitalizado y sin
 // tocar palabras en inglés que se escriben en minúscula por regla.
+// {TU} en el contenido = el nombre que la persona eligio en el cuestionario.
+// Si aun no hay nombre, se usa uno neutro para que la frase siga teniendo
+// sentido.
+function tuNombre() {
+  return (P.perfil && P.perfil.nombre && P.perfil.nombre.trim()) || 'Alex';
+}
+function conNombre(t) {
+  return String(t == null ? '' : t).split('{TU}').join(tuNombre());
+}
+
+// Copia del ejercicio con {TU} resuelto en todos sus textos. Se conserva el
+// original en `_crudo` para que el repaso espaciado siga reconociendolo.
+function resuelveNombre(ej) {
+  if (!ej || typeof ej !== 'object') return ej;
+  const bruto = JSON.stringify(ej);
+  if (!bruto.includes('{TU}')) return ej;
+  const copia = JSON.parse(bruto.split('{TU}').join(tuNombre()));
+  copia._crudo = ej;
+  return copia;
+}
+
 function mayus(t) {
   const s = String(t);
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
 function esc(t) {
-  return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  return conNombre(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
 // Ilustraciones del vocabulario (docs/img/, generadas con Magnific). Si una
@@ -414,7 +435,7 @@ function vVocab(unidad) {
     filas += `<div class="vocab">
       ${imagenDe(v.en)}
       <span class="vocab-txt">
-        <span class="vocab-en">${esc(v.en)}</span> <span class="vocab-es">${esc(v.es)}</span>
+        <span class="vocab-en">${esc(mayus(v.en))}</span> <span class="vocab-es">${esc(v.es)}</span>
         ${v.ej ? `<span class="vocab-ej">${esc(v.ej)}</span>` : ''}
       </span>
       ${botonAudio(v.en)}
@@ -690,8 +711,9 @@ function corredor({ titulo, ejercicios, repetirFallos, alAcierto, alFallo, alTer
     </div>`;
   }
 
-  function resuelve(ej, ok, detalle) {
-    if (ej.pista) detalle.pista = ej.pista;
+  function resuelve(ejPintado, ok, detalle) {
+    const ej = ejPintado._crudo || ejPintado;
+    if (ejPintado.pista) detalle.pista = ejPintado.pista;
     const esRepe = yaRepetido.has(ej);
     hechos = Math.min(hechos + 1, totalPlan);
     const xpAntes = P.xp;
@@ -707,7 +729,11 @@ function corredor({ titulo, ejercicios, repetirFallos, alAcierto, alFallo, alTer
     veredicto(ok, detalle, siguiente);
   }
 
-  function pinta(ej) {
+  function pinta(ejCrudo) {
+    // {TU} se resuelve aqui, una vez, sobre una copia: asi el enunciado, las
+    // opciones, el audio, las piezas de ordenar y la respuesta esperada llevan
+    // todos el nombre real de la persona.
+    const ej = resuelveNombre(ejCrudo);
     const tipo = ej.tipo;
     let cuerpo = '';
     const consignas = {
@@ -1221,14 +1247,31 @@ function modalPase(despues) {
 // Transicion de entrada en cada cambio de vista, y "modo leccion": dentro del
 // corredor y de la celebracion las tabs se esconden, como en las apps de
 // idiomas — solo la tarea y el boton de abajo.
-new MutationObserver(() => {
+const observador = new MutationObserver(() => {
   const v = vista();
   document.body.classList.toggle('en-leccion', !!v.querySelector('.ej-cabecera, .celebra, .onboarding'));
-  document.body.classList.toggle('con-pie', !!v.querySelector('.pie-accion'));
+
+  // El pie de accion es position:fixed, pero la animacion de entrada aplica un
+  // TRANSFORM a la vista, y un ancestro transformado convierte fixed en
+  // absolute: el boton salia a media pagina y saltaba abajo al acabar la
+  // animacion (lo vio Dosa). Se saca del subarbol animado y se cuelga del
+  // body, donde nada lo transforma. Los listeners viajan con el nodo.
+  // OJO: sacarlo cambia los hijos de la vista y volveria a disparar este mismo
+  // observador, que en la segunda vuelta no encontraria el pie y lo borraria.
+  // Por eso se desconecta durante la mudanza y se tiran los registros.
+  observador.disconnect();
+  document.querySelectorAll('body > .pie-accion').forEach((x) => x.remove());
+  const pie = v.querySelector('.pie-accion');
+  document.body.classList.toggle('con-pie', !!pie);
+  if (pie) document.body.appendChild(pie);
+  observador.takeRecords();
+  observador.observe(v, { childList: true });
+
   v.classList.remove('vista-entra');
   void v.offsetWidth;
   v.classList.add('vista-entra');
-}).observe(vista(), { childList: true });
+});
+observador.observe(vista(), { childList: true });
 
 pintaBarra();
 conectaVozNube();

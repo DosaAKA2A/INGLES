@@ -20,16 +20,16 @@ CURSO.push({
     { en: 'please', es: 'por favor', ej: 'Coffee, please.' },                          // 9
     { en: 'thank you', es: 'gracias', ej: 'Thank you very much.' },                    // 10
     { en: 'thanks', es: 'gracias (informal)', ej: 'Thanks, Ana!' },                    // 11
-    { en: "you're welcome", es: 'de nada', ej: "Thanks! You're welcome." },            // 12
+    { en: "you're welcome", es: 'de nada', nota: "Forma corta de <b>you are welcome</b>. En inglés, <b>you are</b> casi siempre se acorta a <b>you're</b> al hablar.", ej: "Thanks! You're welcome." }, // 12
     { en: 'sorry', es: 'perdón, lo siento', ej: 'Sorry!' },                            // 13
     { en: 'excuse me', es: 'disculpe (para llamar la atención o pasar)', ej: 'Excuse me!' }, // 14
-    { en: 'name', es: 'nombre', ej: 'My name is Dosa.' },                              // 15
+    { en: 'name', es: 'nombre', ej: 'My name is {TU}.' },                              // 15
     { en: 'friend', es: 'amigo, amiga', ej: 'You are my friend.' },                    // 16
     { en: 'teacher', es: 'profesor, profesora', ej: 'You are my teacher.' },           // 17
-    { en: "What's your name?", es: '¿cómo te llamas?', ej: "What's your name? My name is Ana." }, // 18
+    { en: "What's your name?", es: '¿cómo te llamas?', nota: "Forma corta de <b>what is your name?</b> — <b>what is</b> se acorta a <b>what's</b>.", ej: "What's your name? My name is Ana." }, // 18
     { en: 'nice to meet you', es: 'mucho gusto', ej: 'Nice to meet you, Tom!' },       // 19
     { en: 'How are you?', es: '¿cómo estás?', ej: 'Hi! How are you?' },                // 20
-    { en: "I'm fine", es: 'estoy bien', ej: "I'm fine, thanks." },                     // 21
+    { en: "I'm fine", es: 'estoy bien', nota: "Forma corta de <b>I am fine</b>. <b>I am</b> se acorta a <b>I'm</b>.", ej: "I'm fine, thanks." }, // 21
     { en: 'and you?', es: '¿y tú?', ej: "I'm fine. And you?" },                        // 22
     { en: 'yes', es: 'sí', ej: 'Yes, please.' },                                       // 23
     { en: 'no', es: 'no', ej: 'No, thanks.' }                                          // 24
@@ -83,23 +83,23 @@ CURSO.push({
       html: `<h2 style="margin-top:0">Tus tres primeras frases</h2>
         <p>Con dos palabras ya te presentas. <b>I am</b> = yo soy; <b>you are</b> = tú eres:</p>
         <table>
-          <tr><td><span class="ej">I am Dosa.</span></td><td class="ejta">Yo soy Dosa.</td></tr>
+          <tr><td><span class="ej">I am {TU}.</span></td><td class="ejta">Yo soy {TU}.</td></tr>
           <tr><td><span class="ej">You are my friend.</span></td><td class="ejta">Tú eres mi amigo.</td></tr>
-          <tr><td><span class="ej">My name is Dosa.</span></td><td class="ejta">Mi nombre es Dosa. (o sea: me llamo Dosa)</td></tr>
+          <tr><td><span class="ej">My name is {TU}.</span></td><td class="ejta">Mi nombre es {TU}. (o sea: me llamo {TU})</td></tr>
         </table>
-        <p>Al hablar casi siempre se acortan: <span class="ej">I'm Dosa</span> = I am Dosa, y <span class="ej">You're my friend</span> = You are my friend. Las dos formas valen.</p>
+        <p>Al hablar casi siempre se acortan: <span class="ej">I'm {TU}</span> = I am {TU}, y <span class="ej">You're my friend</span> = You are my friend. Las dos formas valen.</p>
         <div class="nota">Dos cosas prácticas: <b>I</b> (yo) se escribe SIEMPRE con mayúscula. Y en inglés no se calla el pronombre: "soy Ana" a secas no existe, siempre es <b>I am Ana</b>.</div>
         <p>Toca cualquier frase de color para escucharla.</p>`,
       ejercicios: [
-        { tipo: 'huecos', antes: 'I', despues: 'Dosa.', opciones: ['am', 'are'], r: 0 },
+        { tipo: 'huecos', antes: 'I', despues: '{TU}.', opciones: ['am', 'are'], r: 0 },
         { tipo: 'huecos', antes: 'You', despues: 'my friend.', opciones: ['are', 'am'], r: 0 },
-        { tipo: 'huecos', antes: 'My name', despues: 'Dosa.', opciones: ['is', 'am', 'are'], r: 0 },
+        { tipo: 'huecos', antes: 'My name', despues: '{TU}.', opciones: ['is', 'am', 'are'], r: 0 },
         { tipo: 'ordena', es: 'Me llamo Ana.', en: 'My name is Ana.', extra: ['are'] },
-        { tipo: 'traduce', es: 'Yo soy Dosa.', en: ['i am dosa', "i'm dosa"] },
+        { tipo: 'traduce', es: 'Yo soy {TU}.', en: ['i am dosa', "i'm dosa"] },
         { tipo: 'traduce', es: 'Tú eres mi amigo.', en: ['you are my friend', "you're my friend"], vocabIdx: 16 },
         { tipo: 'opcion', q: '¿Cuál está bien escrita?', opciones: ['I am Ana', 'i am Ana', 'i Am ana'], r: 0, di: 'I am Ana' },
         { tipo: 'escucha', en: 'You are my teacher.' },
-        { tipo: 'habla', en: 'My name is Dosa.', es: 'Me llamo Dosa.' }
+        { tipo: 'habla', en: 'My name is {TU}.', es: 'Me llamo {TU}.' }
       ]
     },
     {
@@ -137,7 +137,7 @@ CURSO.push({
         { tipo: 'traduce', es: 'Sí, por favor.', en: ['yes, please', 'yes please'], vocabIdx: 23 },
         { tipo: 'traduce', es: 'No, gracias.', en: ['no, thanks', 'no thanks', 'no, thank you'], vocabIdx: 24 },
         { tipo: 'escucha', en: 'Goodbye, my friend!' },
-        { tipo: 'habla', en: 'Hi! My name is Dosa. Nice to meet you!', es: 'Hola, me llamo Dosa. ¡Mucho gusto!' },
+        { tipo: 'habla', en: 'Hi! My name is {TU}. Nice to meet you!', es: 'Hola, me llamo {TU}. ¡Mucho gusto!' },
         { tipo: 'habla', en: 'See you later, my friend!', es: '¡Nos vemos luego, amigo!' }
       ]
     },

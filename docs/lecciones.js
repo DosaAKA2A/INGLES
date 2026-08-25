@@ -114,8 +114,9 @@ function vTarjetas(unidad, idx, nuevas, pos) {
     <p class="consigna">Palabra nueva</p>
     <div class="carta">
       ${archivoImagen(v.en) ? `<img class="carta-imagen" src="img/${archivoImagen(v.en)}" alt="">` : ''}
-      <p class="carta-en">${esc(v.en)} ${botonAudio(v.en)}</p>
+      <p class="carta-en">${esc(mayus(v.en))} ${botonAudio(v.en)}</p>
       <p class="carta-es">${esc(mayus(v.es))}</p>
+      ${v.nota ? `<p class="carta-nota">${conNombre(v.nota)}</p>` : ''}
       ${v.ej ? `<p class="carta-ej">${esc(v.ej)} ${botonAudio(v.ej)}</p>` : ''}
     </div>
     <div class="acciones">
@@ -139,7 +140,7 @@ function vLeccionExplica(unidad, idx) {
   vista().innerHTML = `
     <button class="volver" id="volver">${ICO.atras} ${esc(unidad.titulo)}</button>
     <span class="etiqueta">${esc(l.titulo)}</span>
-    <div class="ficha gram">${l.html}</div>
+    <div class="ficha gram">${conNombre(l.html)}</div>
     <button class="btn ancho acento" id="practicar">A practicar</button>`;
   vista().querySelectorAll('.ej').forEach((n) => {
     n.title = 'Escuchar';

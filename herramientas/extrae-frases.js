@@ -17,7 +17,12 @@ for (let i = 1; i <= 12; i++) {
 const CURSO = vm.runInContext('CURSO', ctx);
 
 const a = new Set(), b = new Set();
-const mete = (t, voz) => { t = String(t || '').trim(); if (t) (voz === 'b' ? b : a).add(t); };
+// {TU} se pregraba con un nombre neutro; con el nombre real de la persona la
+// frase la dice la voz de la nube.
+const mete = (t, voz) => {
+  t = String(t || '').replace(/\{TU\}/g, 'Alex').trim();
+  if (t) (voz === 'b' ? b : a).add(t);
+};
 
 const deEjercicio = (ej) => {
   if (ej.tipo === 'escucha' || ej.tipo === 'habla' || ej.tipo === 'ordena') mete(ej.en);

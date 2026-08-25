@@ -109,6 +109,8 @@ const Voz = (() => {
 
   api.di = (texto, opciones = {}) => {
     texto = String(texto).trim();
+    // por si algun sitio manda el marcador sin resolver
+    if (texto.includes('{TU}') && typeof conNombre === 'function') texto = conNombre(texto);
     // `dinamico` salta los pregrabados: el tutor de Conversar habla SIEMPRE con
     // la voz de la nube, para que el saludo y las respuestas sean la misma voz.
     const clave = (opciones.voz === 'b' ? 'b|' : 'a|') + texto;
