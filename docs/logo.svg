@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" fill="none">
+  <!-- Mismo degradado que el sitio: 330deg, #1266cc a #21a3e8 a #3ad8f0 -->
+  <linearGradient id="g" x1="0.75" y1="0.933" x2="0.25" y2="0.067">
+    <stop offset="0" stop-color="#1266cc"/>
+    <stop offset="0.5" stop-color="#21a3e8"/>
+    <stop offset="1" stop-color="#3ad8f0"/>
+  </linearGradient>
+  <path fill="url(#g)" d="M 228 0 C 172.772 0 128 44.772 128 100 L 128 0 L 0 0 L 0 28 C 0 83.228 44.772 128 100 128 L 0 128 L 0 256 L 28 256 C 83.228 256 128 211.228 128 156 L 128 256 L 256 256 L 256 228 C 256 172.772 211.228 128 156 128 L 256 128 L 256 0 Z"/>
+</svg>
