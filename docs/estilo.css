@@ -971,7 +971,9 @@ body.con-veredicto .pie-accion { opacity: 0; pointer-events: none; transform: tr
   background: var(--lienzo); box-shadow: var(--relieve);
   font-weight: 900; font-size: 14px; color: var(--tinta-2);
 }
-.cara img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+/* Los avatares son bustos verticales (162x224): recortados en circulo hay que
+   anclarlos ARRIBA o se ve el pecho en vez de la cara. */
+.cara img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 0; }
 .cara img + b { display: none; }              /* con foto, fuera la inicial */
 .cara-B { color: var(--a-texto); }
 .cara-tu { box-shadow: var(--hundido-suave); color: var(--tinta-3); }
@@ -1001,3 +1003,6 @@ body.con-veredicto .pie-accion { opacity: 0; pointer-events: none; transform: tr
 /* En los dialogos la cara ocupa el sitio de la vieja letra .linea-quien */
 .linea .cara { width: 34px; height: 34px; font-size: 13px; }
 .linea.b .cara { box-shadow: var(--relieve); }
+
+.cara { background: var(--oscura); }        /* fondo tras el avatar recortado */
+.cara-tu { background: var(--lienzo); }

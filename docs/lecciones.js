@@ -127,6 +127,7 @@ function despuesDeEscena(unidad, idx) {
 function vEscena(unidad, idx) {
   const l = unidad.lecciones[idx];
   const e = l.escena;
+  reparte(e.reparto);
   let filas = '';
   e.lineas.forEach((x, i) => {
     if (x.t) { filas += `<p class="escena-acota">${esc(x.t)}</p>`; return; }
@@ -155,7 +156,7 @@ function vEscena(unidad, idx) {
       const x = e.lineas[+g.dataset.idx];
       document.querySelectorAll('.globo.sonando').forEach((y) => y.classList.remove('sonando'));
       g.classList.add('sonando');
-      Voz.di(x.en, { lento: AJ.lento, voz: x.q === 'B' ? 'b' : 'a', alTerminar: () => g.classList.remove('sonando') });
+      Voz.di(x.en, { lento: AJ.lento, voz: personaje(x.q).voz, alTerminar: () => g.classList.remove('sonando') });
     });
   });
 
@@ -170,7 +171,7 @@ function vEscena(unidad, idx) {
       globos.forEach((y) => y.classList.remove('sonando'));
       globos[n].classList.add('sonando');
       globos[n].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-      Voz.di(x.en, { lento: AJ.lento, voz: x.q === 'B' ? 'b' : 'a', alTerminar: () => setTimeout(() => toca(n + 1), 350) });
+      Voz.di(x.en, { lento: AJ.lento, voz: personaje(x.q).voz, alTerminar: () => setTimeout(() => toca(n + 1), 350) });
     };
     toca(0);
   });
@@ -183,6 +184,7 @@ function vEscena(unidad, idx) {
 // audio, casi identica al titular de la tarjeta: dos botones para lo mismo.
 function cambioDe(v) {
   if (!v.cambio) return v.ej ? `<p class="carta-ej">${esc(v.ej)} ${botonAudio(v.ej)}</p>` : '';
+  reparte(null);                       // en la tarjeta habla siempre Aria
   const p = personaje('A');
   return `<div class="cambio">
     <div class="cambio-linea">
@@ -300,6 +302,7 @@ function cierraLeccion(unidad, idx, aciertos, total) {
 function vLeccionDialogo(unidad, idx) {
   const l = unidad.lecciones[idx];
   const dlg = l.dialogo;
+  reparte(dlg.reparto);
   let lineas = '';
   dlg.lineas.forEach((x, i) => {
     lineas += `<div class="linea ${x.q === 'B' ? 'b' : ''}">
@@ -325,7 +328,7 @@ function vLeccionDialogo(unidad, idx) {
       const x = dlg.lineas[+g.dataset.idx];
       document.querySelectorAll('.globo.sonando').forEach((y) => y.classList.remove('sonando'));
       g.classList.add('sonando');
-      Voz.di(x.en, { lento: AJ.lento, voz: x.q === 'B' ? 'b' : 'a', alTerminar: () => g.classList.remove('sonando') });
+      Voz.di(x.en, { lento: AJ.lento, voz: personaje(x.q).voz, alTerminar: () => g.classList.remove('sonando') });
     });
   });
 
@@ -340,7 +343,7 @@ function vLeccionDialogo(unidad, idx) {
       globos.forEach((y) => y.classList.remove('sonando'));
       globos[i].classList.add('sonando');
       globos[i].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-      Voz.di(x.en, { lento: AJ.lento, voz: x.q === 'B' ? 'b' : 'a', alTerminar: () => setTimeout(() => toca(i + 1), 350) });
+      Voz.di(x.en, { lento: AJ.lento, voz: personaje(x.q).voz, alTerminar: () => setTimeout(() => toca(i + 1), 350) });
     };
     toca(0);
   });

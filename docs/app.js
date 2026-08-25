@@ -221,13 +221,38 @@ function resuelveNombre(ej) {
 // NO va en lo que se lee dentro de una frase: las opciones de los ejercicios
 // de completar ("I ___ Dosa" -> am) y las piezas de ordenar, donde una
 // mayuscula a media frase seria un error de ingles.
-// Los dos personajes del curso. Cada uno tiene SU voz: la misma persona suena
-// siempre igual, en las escenas, en los dialogos y en las tarjetas.
-const PERSONAJES = {
-  A: { nombre: 'Aria', voz: 'a', avatar: 'personajes/aria.png' },
-  B: { nombre: 'Andrew', voz: 'b', avatar: 'personajes/andrew.png' }
+// ---- elenco -----------------------------------------------------------------
+// Los 12 avatares del curso. Aria es la unica con nombre fijo; los demas son
+// un banco del que se tira segun el GENERO del papel. El genero manda la voz:
+// mujer -> voz A, hombre -> voz B. Al escribir una escena solo hay que decir
+// quien la interpreta: cara y voz salen solas.
+const ELENCO = {
+  aria: 'f', pj3: 'f', pj5: 'f', pj6: 'f', pj10: 'f',
+  pj1: 'm', pj2: 'm', pj4: 'm', pj7: 'm', pj8: 'm', pj9: 'm', pj11: 'm'
 };
-function personaje(q) { return PERSONAJES[q] || { nombre: String(q), voz: 'a', avatar: '' }; }
+
+// Quien interpreta cada nombre que aparece en los dialogos.
+const REPARTO = {
+  Aria: 'aria',
+  Andrew: 'pj2'
+};
+
+// Una escena reparte sus dos huecos de voz: A = voz femenina, B = masculina.
+const REPARTO_POR_DEFECTO = { A: 'Aria', B: 'Andrew' };
+let repartoActual = REPARTO_POR_DEFECTO;
+function reparte(r) { repartoActual = Object.assign({}, REPARTO_POR_DEFECTO, r || {}); }
+
+function personaje(q) {
+  // `q` es el hueco de voz ('A'/'B') o directamente el nombre del personaje
+  const nombre = repartoActual[q] || q;
+  const pj = REPARTO[nombre];
+  const genero = ELENCO[pj];
+  return {
+    nombre: String(nombre),
+    voz: genero === 'm' ? 'b' : 'a',
+    avatar: pj ? 'personajes/' + pj + '.svg' : ''
+  };
+}
 
 // Cara del personaje. Si aun no hay imagen, la inicial: nada se rompe por
 // faltar un archivo.
