@@ -21,22 +21,22 @@ const TANDA_EXAMEN = 10;  // preguntas por examen
 // ---- iconos (SVG de línea, estilo Lucide) ----------------------------------
 
 const ICO = {
-  fuego: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3 2.5.5 5 2.5 5 6a5 5 0 0 1-10 0c0-1.5.5-2.5 1-3.5.3 1.5 1 3 2.5 3z"/><path d="M14.5 9c.7-1.5.5-3.5-.5-5-1 2-2.5 2.6-4 4C8 9.5 7 11.5 7 13"/></svg>',
-  estrella: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
-  ajustes: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4m0 14v4M4.2 4.2l2.8 2.8m10 10 2.8 2.8M1 12h4m14 0h4M4.2 19.8l2.8-2.8m10-10 2.8-2.8"/></svg>',
-  atras: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>',
-  altavoz: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>',
-  tortuga: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg>',
-  libro: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>',
-  regla: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h20M2 7h20M2 17h20" opacity="0"/><path d="M3 5h18v14H3z"/><path d="M7 5v4m4-4v4m4-4v4m-8 6h10"/></svg>',
-  charla: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
-  pesa: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5 17.5 17.5"/><path d="m21 21-1.5-1.5M3 3l1.5 1.5"/><path d="M18 22 22 18M2 6 6 2"/><path d="m3 10 7-7m4 18 7-7"/></svg>',
-  diploma: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.5 13 17 22l-5-3-5 3 1.5-9"/></svg>',
-  pluma: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>',
-  mic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2"/><path d="M12 19v3"/></svg>',
-  check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
-  refresco: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36L21 8"/><path d="M21 3v5h-5"/></svg>',
-  candado: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>'
+  fuego: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3 2.5.5 5 2.5 5 6a5 5 0 0 1-10 0c0-1.5.5-2.5 1-3.5.3 1.5 1 3 2.5 3z"/><path d="M14.5 9c.7-1.5.5-3.5-.5-5-1 2-2.5 2.6-4 4C8 9.5 7 11.5 7 13"/></svg>',
+  estrella: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+  ajustes: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4m0 14v4M4.2 4.2l2.8 2.8m10 10 2.8 2.8M1 12h4m14 0h4M4.2 19.8l2.8-2.8m10-10 2.8-2.8"/></svg>',
+  atras: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>',
+  altavoz: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>',
+  tortuga: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg>',
+  libro: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>',
+  regla: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h20M2 7h20M2 17h20" opacity="0"/><path d="M3 5h18v14H3z"/><path d="M7 5v4m4-4v4m4-4v4m-8 6h10"/></svg>',
+  charla: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
+  pesa: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5 17.5 17.5"/><path d="m21 21-1.5-1.5M3 3l1.5 1.5"/><path d="M18 22 22 18M2 6 6 2"/><path d="m3 10 7-7m4 18 7-7"/></svg>',
+  diploma: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.5 13 17 22l-5-3-5 3 1.5-9"/></svg>',
+  pluma: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>',
+  mic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2"/><path d="M12 19v3"/></svg>',
+  check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+  refresco: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36L21 8"/><path d="M21 3v5h-5"/></svg>',
+  candado: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>'
 };
 
 // ---- estado ----------------------------------------------------------------
@@ -166,6 +166,24 @@ function esc(t) {
   return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
+// Ilustraciones del vocabulario (docs/img/, generadas con Magnific). Si una
+// palabra no tiene la suya, no se deja hueco: se cae al icono.
+function claveImagen(texto) {
+  return String(texto).toLowerCase().replace(/[^a-z' ]/g, '').trim();
+}
+function archivoImagen(texto) {
+  return (typeof IMG_MAPA !== 'undefined') && IMG_MAPA[claveImagen(texto)];
+}
+function imagenDe(texto) {
+  const f = archivoImagen(texto);
+  return f ? `<img class="vocab-imagen" src="img/${f}" alt="" loading="lazy">`
+           : `<span class="vocab-imagen vacia">${ICO.libro}</span>`;
+}
+function ilustracionGrande(texto) {
+  const f = archivoImagen(texto);
+  return f ? `<img class="ej-imagen" src="img/${f}" alt="" loading="lazy">` : '';
+}
+
 function botonAudio(texto, extra = '') {
   return `<button class="btn-audio ${extra}" data-di="${esc(texto)}" title="Escuchar" aria-label="Escuchar">${ICO.altavoz}</button>`;
 }
@@ -214,6 +232,15 @@ function desbloqueada(idx) {
   return examenAprobado(CURSO[idx - 1].id);
 }
 
+// Anillo de avance: 26px, r=11 -> circunferencia 69,1.
+function anilloSVG(pct) {
+  const c = 69.1;
+  return `<svg class="anillo" viewBox="0 0 26 26" aria-hidden="true">
+    <circle class="pista" cx="13" cy="13" r="11"/>
+    <circle class="valor" cx="13" cy="13" r="11" stroke-dasharray="${(c * pct / 100).toFixed(1)} ${c}"/>
+  </svg>`;
+}
+
 function pctUnidad(unidad) {
   const d = u(unidad.id);
   let hecho = 0, total = 4 + (unidad.dialogo ? 1 : 0);
@@ -227,8 +254,15 @@ function pctUnidad(unidad) {
 
 function vInicio() {
   vistaActual = 'inicio';
-  let html = `<h1>Inglés desde cero</h1>
-    <p class="gris">Un camino: cada unidad se abre aprobando el examen de la anterior con ${NOTA_EXAMEN}% o más.</p>
+  const hechas = CURSO.filter((x) => examenAprobado(x.id)).length;
+  let html = `<span class="etiqueta">Nivel A0 &ndash; A1</span>
+    <h1>Inglés desde cero</h1>
+    <p class="entradilla">Doce unidades. Cada una se abre aprobando el examen de la anterior.</p>
+    <div class="tarjetas-stats">
+      <div class="stat"><div class="stat-num">${hechas}<span class="gris" style="font-size:20px">/${CURSO.length}</span></div><div class="stat-nombre">unidades aprobadas</div></div>
+      <div class="stat"><div class="stat-num oro">${P.racha.dias}</div><div class="stat-nombre">días de racha</div></div>
+      <div class="stat"><div class="stat-num azul">${P.xp}</div><div class="stat-nombre">experiencia</div></div>
+    </div>
     <div class="unidades">`;
   CURSO.forEach((unidad, idx) => {
     const abierta = desbloqueada(idx);
@@ -236,13 +270,15 @@ function vInicio() {
     const hecha = examenAprobado(unidad.id);
     const actual = abierta && !hecha;
     html += `<button class="unidad ${abierta ? '' : 'bloqueada'} ${hecha ? 'hecha' : ''} ${actual ? 'actual' : ''}" data-uid="${unidad.id}" ${abierta ? '' : 'disabled'}>
-      <span class="unidad-num">${hecha ? ICO.check : idx + 1}</span>
+      <span class="unidad-num">${hecha ? ICO.check : String(idx + 1).padStart(2, '0')}</span>
       <span class="unidad-info">
         <span class="unidad-titulo">${esc(unidad.titulo)}</span>
         <span class="unidad-sub">${esc(unidad.descripcion)}</span>
-        ${abierta ? `<span class="progreso-mini"><i style="width:${pct}%"></i></span>` : ''}
       </span>
-      <span class="unidad-nivel">${abierta ? unidad.nivel : ''}${abierta ? '' : ICO.candado}</span>
+      <span class="unidad-cola">
+        ${abierta ? (pct > 0 && pct < 100 ? anilloSVG(pct) : '') : ICO.candado.replace('<svg', '<svg class="candado"')}
+        <span class="nivel">${unidad.nivel}</span>
+      </span>
     </button>`;
   });
   html += '</div>';
@@ -306,15 +342,20 @@ function vVocab(unidad) {
   let filas = '';
   unidad.vocab.forEach((v) => {
     filas += `<div class="vocab">
+      ${imagenDe(v.en)}
+      <span class="vocab-txt">
+        <span class="vocab-en">${esc(v.en)}</span> <span class="vocab-es">${esc(v.es)}</span>
+        ${v.ej ? `<span class="vocab-ej">${esc(v.ej)}</span>` : ''}
+      </span>
       ${botonAudio(v.en)}
-      <span class="vocab-en">${esc(v.en)}${v.ej ? `<br><span class="vocab-ej">${esc(v.ej)}</span>` : ''}</span>
-      <span class="vocab-es">${esc(v.es)}</span>
     </div>`;
   });
   vista().innerHTML = `
     <button class="volver" id="volver">${ICO.atras} ${esc(unidad.titulo)}</button>
+    <span class="etiqueta">Unidad ${esc(unidad.titulo)}</span>
     <h1>Vocabulario</h1>
-    <p class="gris">Toca el altavoz para escuchar cada palabra. Después la práctica y el repaso se encargan de que se te peguen.</p>
+    <p class="entradilla">${unidad.vocab.length} palabras. Toca el altavoz para escucharlas; la práctica y el repaso se encargan del resto.</p>
+    <div class="espacio"></div>
     <div class="ficha"><div class="vocab-lista">${filas}</div></div>
     <button class="btn ancho" id="listo">Ya las escuché todas</button>`;
   $('#volver').addEventListener('click', () => vUnidad(unidad.id));
@@ -427,7 +468,7 @@ function vEnsayo(unidad) {
     <textarea class="ensayo-area" id="texto" placeholder="Write here, in English..." spellcheck="false"></textarea>
     <p class="gris chica" id="cuenta" style="margin-top:6px">0 palabras</p>
     <div class="acciones">
-      <button class="btn" id="enviar" disabled>Enviar a corregir</button>
+      <button class="btn acento" id="enviar" disabled>Enviar a corregir</button>
     </div>
     <div id="resultado"></div>`;
 
@@ -467,19 +508,20 @@ function pintaCorreccion(unidad, c) {
   if (c.puntaje > (d.ensayo ?? -1)) d.ensayo = c.puntaje;
   daXP(Math.round(c.puntaje / 2));
 
-  const clase = c.puntaje >= 75 ? 'verde' : (c.puntaje < 50 ? 'rojo' : '');
+  const clase = c.puntaje >= 75 ? 'verde' : (c.puntaje < 50 ? 'rojo' : 'azul');
   let items = '';
   (c.correcciones || []).forEach((x) => {
     items += `<div class="corr-item">
-      <span class="tachado">${esc(x.original)}</span> &rarr; <span class="bueno">${esc(x.corregido)}</span>
+      <span class="tachado">${esc(x.original)}</span><span class="flecha">&rarr;</span><span class="bueno">${esc(x.corregido)}</span>
       <span class="porque">${esc(x.explicacion)}</span>
     </div>`;
   });
   $('#resultado').innerHTML = `
     <div class="espacio"></div>
-    <div class="ficha centrado">
-      <div class="puntaje-grande ${clase}">${c.puntaje}</div>
-      <p>${esc(c.resumen || '')}</p>
+    <div class="ficha">
+      <span class="etiqueta">Tu puntaje</span>
+      <div class="puntaje-grande ${clase}">${c.puntaje}<span class="gris" style="font-size:.4em">/100</span></div>
+      <p class="entradilla">${esc(c.resumen || '')}</p>
     </div>
     ${items ? `<h2>Correcciones</h2><div class="correccion">${items}</div>` : ''}
     ${c.version_mejorada ? `<h2>Versión mejorada ${botonAudio(c.version_mejorada)}</h2><div class="ficha">${esc(c.version_mejorada)}</div>` : ''}
@@ -599,18 +641,20 @@ function corredor({ titulo, ejercicios, repetirFallos, alAcierto, alFallo, alTer
     if (tipo === 'opcion' || tipo === 'huecos') {
       const enun = tipo === 'huecos' ? esc(ej.antes) + ' ____ ' + esc(ej.despues || '') : esc(ej.q);
       cuerpo = `<p class="consigna">${consignas[tipo]}</p>
+        ${ej.audio ? ilustracionGrande(ej.audio) : ''}
         <p class="enunciado">${ej.audio ? botonAudio(ej.audio) : ''}${enun}</p>
         <div class="opciones">${ej.opciones.map((o, i) => `<button class="opcion" data-i="${i}">${esc(o)}</button>`).join('')}</div>`;
     } else if (tipo === 'traduce') {
       cuerpo = `<p class="consigna">${consignas.traduce}</p>
+        ${ilustracionGrande(ej.en[0])}
         <p class="enunciado">${esc(ej.es)}</p>
         <input class="respuesta-texto" id="resp" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="In English...">
-        <div class="acciones"><button class="btn" id="comprobar">Comprobar</button></div>`;
+        <div class="acciones"><button class="btn acento" id="comprobar">Comprobar</button></div>`;
     } else if (tipo === 'escucha') {
       cuerpo = `<p class="consigna">${consignas.escucha}</p>
         <p class="enunciado">${botonAudio(ej.en)}<button class="btn-audio" data-di-lento="${esc(ej.en)}" title="Más despacio">${ICO.tortuga}</button></p>
         <input class="respuesta-texto" id="resp" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Type what you hear...">
-        <div class="acciones"><button class="btn" id="comprobar">Comprobar</button></div>`;
+        <div class="acciones"><button class="btn acento" id="comprobar">Comprobar</button></div>`;
     } else if (tipo === 'ordena') {
       const piezas = baraja(ej.en.split(' ').concat(ej.extra || []));
       cuerpo = `<p class="consigna">${consignas.ordena}</p>
@@ -761,10 +805,14 @@ function corredor({ titulo, ejercicios, repetirFallos, alAcierto, alFallo, alTer
         <div class="veredicto-detalle">${detalle.nota ? esc(detalle.nota) : (ok ? '' : 'Respuesta: ' + esc(detalle.correcta))}
           ${detalle.di ? ' ' + botonAudio(detalle.di) : ''}</div>
       </div>
-      <button class="btn" id="sigue">Seguir</button>
+      <button class="btn acento" id="sigue">Seguir</button>
     </div>`;
     document.body.appendChild(capa);
-    requestAnimationFrame(() => capa.classList.add('visible'));
+    // Reflow forzado en vez de requestAnimationFrame: rAF no dispara en una
+    // pestana de fondo y el veredicto se quedaba fuera de pantalla hasta que
+    // la pestana recuperaba el foco.
+    void capa.offsetHeight;
+    capa.classList.add('visible');
     if (ok && detalle.di) Voz.di(detalle.di, { lento: false });
     const cierra = () => { capa.remove(); document.removeEventListener('keydown', porTecla); continuar(); };
     const porTecla = (e) => { if (e.key === 'Enter') cierra(); };
@@ -777,15 +825,15 @@ function corredor({ titulo, ejercicios, repetirFallos, alAcierto, alFallo, alTer
 
 function resumenTanda(aciertos, total, mensaje, alSeguir) {
   const pct = Math.round((aciertos / total) * 100);
-  const clase = pct >= NOTA_EXAMEN ? 'verde' : (pct < 50 ? 'rojo' : '');
+  const clase = pct >= NOTA_EXAMEN ? 'verde' : (pct < 50 ? 'rojo' : 'azul');
   vista().innerHTML = `
     <div class="espacio"></div>
-    <div class="ficha centrado">
-      <div class="puntaje-grande ${clase}">${pct}%</div>
-      <p style="font-weight:650">${aciertos} de ${total}</p>
-      <p class="gris">${esc(mensaje)}</p>
+    <div class="ficha">
+      <span class="etiqueta">${aciertos} de ${total} correctas</span>
+      <div class="puntaje-grande ${clase}">${pct}<span class="gris" style="font-size:.45em">%</span></div>
+      <p class="entradilla">${esc(mensaje)}</p>
     </div>
-    <button class="btn ancho" id="seguir">Seguir</button>`;
+    <button class="btn ancho acento" id="seguir">Seguir</button>`;
   $('#seguir').addEventListener('click', alSeguir);
 }
 
@@ -852,7 +900,7 @@ function vCharla() {
       <div class="charla-msgs" id="msgs"></div>
       <div class="charla-envio">
         <input class="respuesta-texto" id="entrada" placeholder="Say something in English..." autocomplete="off">
-        <button class="btn" id="mandar">Enviar</button>
+        <button class="btn acento" id="mandar">Enviar</button>
       </div>
     </div>`;
 
@@ -1006,7 +1054,7 @@ function modalPase(despues) {
     <p class="gris chica" id="pase-error" style="margin-top:8px"></p>
     <div class="acciones">
       <button class="btn secundario" id="pase-no">Ahora no</button>
-      <button class="btn" id="pase-si" style="flex:1">Entrar</button>
+      <button class="btn acento" id="pase-si" style="flex:1">Entrar</button>
     </div>`);
   const entra = async () => {
     const pase = capa.querySelector('#pase').value;
