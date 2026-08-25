@@ -10,6 +10,15 @@
 </head>
 <body>
 
+<!-- Intro: se quita sola al terminar (o al primer toque). El primer toque
+     ademas desbloquea el audio del navegador. -->
+<div id="intro" class="intro" aria-hidden="true">
+  <div class="intro-anillos"><span></span><span></span><span></span><span></span><span></span></div>
+  <div class="intro-logo">EN</div>
+  <p class="intro-nombre">Inglés desde cero</p>
+</div>
+
+
 <header class="barra">
   <div class="marca" id="ir-inicio" role="button" tabindex="0">
     <span class="marca-en">EN</span>
@@ -18,7 +27,7 @@
   <div class="barra-datos">
     <span class="dato" id="dato-racha" title="Días seguidos practicando"></span>
     <span class="dato" id="dato-xp" title="Experiencia total"></span>
-    <button class="boton-icono" id="btn-ajustes" title="Ajustes" aria-label="Ajustes"></button>
+    <button class="btn-menu" id="btn-menu" title="Menú" aria-label="Menú" aria-expanded="false"><i></i><i></i><i></i></button>
   </div>
 </header>
 

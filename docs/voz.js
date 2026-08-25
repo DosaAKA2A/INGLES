@@ -18,22 +18,87 @@ const Voz = (() => {
 
   // ---- 1. MP3 pregrabados ----
 
-  let reproductor = null;
+  // UN solo reproductor para toda la app. Crear un Audio nuevo por frase hacia
+  // que el navegador lo tratara como reproduccion "sin gesto" y la bloqueara:
+  // por eso a veces habia que tocar el mensaje para oirlo. Este se desbloquea
+  // en el primer toque de la sesion y luego solo se le cambia el src.
+  const reproductor = new Audio();
+  reproductor.preload = 'auto';
   let alTerminarActual = null;
+  let desbloqueado = false;
+
+  // Cebo para el desbloqueo: un clip real del curso a volumen 0. Un data:URI
+  // inventado no vale — si el navegador no lo sabe descodificar, el play()
+  // falla y parece que falta el gesto cuando no es eso.
+  function clipCebo() {
+    if (typeof AUDIO_MAPA === 'undefined') return null;
+    for (const k in AUDIO_MAPA) return RUTA_AUDIO + AUDIO_MAPA[k];
+    return null;
+  }
+
+  let pendiente = null;   // frase que el navegador bloqueo, esperando un gesto
+
+  function desbloquea() {
+    if (pendiente) {                       // habia algo por decir: se dice ahora
+      const p = pendiente;
+      pendiente = null;
+      desbloqueado = true;
+      reproduce(p.src, p.opciones);
+      return;
+    }
+    if (desbloqueado) return;
+    const cebo = clipCebo();
+    if (!cebo) { desbloqueado = true; return; }
+    desbloqueado = true;
+    reproductor.volume = 0;
+    reproductor.src = cebo;
+    const intento = reproductor.play();
+    if (intento && intento.then) {
+      intento.then(() => {
+        // solo se limpia si nadie puso ya una frase de verdad
+        if (reproductor.volume === 0) {
+          reproductor.pause(); reproductor.currentTime = 0; reproductor.volume = 1;
+        }
+      }).catch((e) => {
+        reproductor.volume = 1;
+        if (e && e.name === 'NotAllowedError') desbloqueado = false;   // aun sin permiso
+      });
+    }
+  }
+  for (const evento of ['pointerdown', 'touchstart', 'keydown']) {
+    window.addEventListener(evento, desbloquea, { capture: true, passive: true });
+  }
 
   function terminaActual() {
     if (alTerminarActual) { const f = alTerminarActual; alTerminarActual = null; f(); }
   }
 
-  function suenaMP3(archivo, opciones) {
+  function reproduce(src, opciones) {
     calla();
-    reproductor = new Audio(RUTA_AUDIO + archivo);
+    reproductor.volume = 1;
+    reproductor.src = src;
     reproductor.playbackRate = opciones.lento ? 0.7 : 1;
+    reproductor.onended = reproductor.onerror = null;
     if (opciones.alTerminar) {
       alTerminarActual = opciones.alTerminar;
       reproductor.onended = reproductor.onerror = terminaActual;
     }
-    reproductor.play().catch(() => terminaActual());
+    const intento = reproductor.play();
+    if (intento && intento.catch) {
+      intento.catch((e) => {
+        if (!e || e.name !== 'NotAllowedError') { terminaActual(); return; }   // 404, audio roto...
+        // el navegador exige un gesto: se guarda y suena en el proximo toque
+        desbloqueado = false;
+        pendiente = { src, opciones, cuando: performance.now() };
+        setTimeout(() => {
+          if (pendiente && performance.now() - pendiente.cuando >= 8000) { pendiente = null; terminaActual(); }
+        }, 8000);
+      });
+    }
+  }
+
+  function suenaMP3(archivo, opciones) {
+    reproduce(RUTA_AUDIO + archivo, opciones);
   }
 
   // ---- 2. voz de la nube (se engancha desde app.js cuando hay pase) ----
@@ -56,14 +121,7 @@ const Voz = (() => {
   }
 
   function suenaMP3es(url, opciones) {
-    calla();
-    reproductor = new Audio(url);
-    reproductor.playbackRate = opciones.lento ? 0.7 : 1;
-    if (opciones.alTerminar) {
-      alTerminarActual = opciones.alTerminar;
-      reproductor.onended = reproductor.onerror = terminaActual;
-    }
-    reproductor.play().catch(() => terminaActual());
+    reproduce(url, opciones);
   }
 
   // ---- 3. speechSynthesis, solo con una voz inglesa de verdad ----
@@ -125,7 +183,8 @@ const Voz = (() => {
 
   api.calla = () => {
     generacion++;
-    if (reproductor) { reproductor.onended = reproductor.onerror = null; reproductor.pause(); reproductor = null; }
+    reproductor.onended = reproductor.onerror = null;
+    try { reproductor.pause(); } catch (e) { /* aun sin src */ }
     if ('speechSynthesis' in window) speechSynthesis.cancel();
     terminaActual();
   };

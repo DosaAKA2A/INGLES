@@ -1184,9 +1184,44 @@ function modal(html) {
 }
 function cierraModal() { $('#capa-modal').classList.add('oculto'); $('#capa-modal').innerHTML = ''; }
 
-$('#btn-ajustes').innerHTML = ICO.ajustes;
-$('#btn-ajustes').addEventListener('click', () => {
-  const capa = modal(`
+const btnMenu = $('#btn-menu');
+
+// El panel se ancla al botón y la barra queda por encima del velo, para que la
+// X siga a la vista y sirva para cerrar.
+function abrePanel(html) {
+  cierraPanel(true);
+  const velo = document.createElement('div');
+  velo.id = 'menu-velo';
+  const panel = document.createElement('div');
+  panel.id = 'menu-panel';
+  panel.innerHTML = html;
+  document.body.append(velo, panel);
+  const b = $('.barra').getBoundingClientRect();
+  panel.style.top = (b.bottom + 10) + 'px';
+  panel.style.right = Math.max(8, window.innerWidth - b.right) + 'px';
+  requestAnimationFrame(() => { velo.classList.add('entra'); panel.classList.add('entra'); });
+  velo.addEventListener('pointerdown', () => cierraPanel());
+  btnMenu.classList.add('abierto');
+  btnMenu.setAttribute('aria-expanded', 'true');
+  return panel;
+}
+function cierraPanel(deGolpe) {
+  btnMenu.classList.remove('abierto');
+  btnMenu.setAttribute('aria-expanded', 'false');
+  for (const id of ['menu-velo', 'menu-panel']) {
+    const n = document.getElementById(id);
+    if (!n) continue;
+    if (deGolpe) { n.remove(); continue; }
+    n.classList.remove('entra');
+    setTimeout(() => n.remove(), 300);
+  }
+}
+window.addEventListener('keydown', (e) => { if (e.key === 'Escape') cierraPanel(); });
+
+btnMenu.addEventListener('click', () => {
+  // el mismo botón abre y cierra: por eso se pliega en X al abrirse
+  if (btnMenu.classList.contains('abierto')) { cierraPanel(); return; }
+  const capa = abrePanel(`
     <h2>Ajustes</h2>
     <div class="fila">
       <span>Audio lento<br><span class="gris chica">Todas las voces hablan más despacio</span></span>
@@ -1217,7 +1252,7 @@ $('#btn-ajustes').addEventListener('click', () => {
       capa.querySelector('#aj-sync-estado').textContent = 'Sin conectar';
       capa.querySelector('#aj-conectar').textContent = 'Conectar';
     } else {
-      cierraModal();
+      cierraPanel();
       modalPase(() => {});
     }
   });
@@ -1226,11 +1261,11 @@ $('#btn-ajustes').addEventListener('click', () => {
     capa.querySelector('#aj-borrar').onclick = () => {
       P = progresoVacio();
       localStorage.setItem(CLAVE_LOCAL, JSON.stringify(P));
-      cierraModal(); vInicio();
+      cierraPanel(); vInicio();
     };
   });
-  capa.querySelector('#aj-perfil').addEventListener('click', () => { cierraModal(); vOnboarding(); });
-  capa.querySelector('#aj-cerrar').addEventListener('click', cierraModal);
+  capa.querySelector('#aj-perfil').addEventListener('click', () => { cierraPanel(); vOnboarding(); });
+  capa.querySelector('#aj-cerrar').addEventListener('click', () => cierraPanel());
 });
 
 function modalPase(despues) {
@@ -1308,3 +1343,21 @@ pintaBarra();
 conectaVozNube();
 vInicio();
 bajaProgreso();
+
+
+// ---- intro ------------------------------------------------------------------
+// La cortina se retira sola cuando termina la cadena de anillos; un toque la
+// adelanta (y de paso desbloquea el audio del navegador).
+(() => {
+  const intro = $('#intro');
+  if (!intro) return;
+  let ido = false;
+  const quita = () => {
+    if (ido) return;
+    ido = true;
+    intro.classList.add('fuera');
+    setTimeout(() => intro.remove(), 550);
+  };
+  intro.addEventListener('pointerdown', quita);
+  setTimeout(quita, 1900);
+})();

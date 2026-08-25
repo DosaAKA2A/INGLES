@@ -92,7 +92,7 @@ body.en-leccion .tabs { display: none; }
 
 /* ---- barra superior ---- */
 .barra {
-  position: sticky; top: var(--marco); z-index: 30;
+  position: sticky; top: var(--marco); z-index: 33;   /* siempre sobre el menú */
   max-width: var(--maxw); margin: var(--marco) auto 0;
   width: calc(100% - var(--gut) * 2);
   display: flex; align-items: center; justify-content: space-between;
@@ -127,6 +127,29 @@ body.en-leccion .tabs { display: none; }
   box-shadow: var(--relieve);
   transition: box-shadow var(--dur) ease, transform var(--dur) var(--spring);
 }
+
+/* Botón de menú: tres barras que se pliegan en X y el botón se hunde. */
+.btn-menu {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  width: 36px; height: 36px; border-radius: var(--r-chip);
+  background: var(--lienzo); cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: var(--relieve);
+  transition: box-shadow .5s cubic-bezier(.79, .21, .06, .81), transform var(--dur) var(--spring);
+}
+.btn-menu i {
+  display: block; width: 17px; height: 2.5px; border-radius: 3px; margin: 2.5px 0;
+  background: var(--grad);
+  box-shadow: 0 0 8px rgba(33, 163, 232, .38);
+  transition: margin .4s cubic-bezier(.79, .21, .06, .81), transform .4s cubic-bezier(.79, .21, .06, .81);
+}
+.btn-menu:hover { transform: translateY(-2px); }
+.btn-menu:active { transform: scale(.94); }
+.btn-menu.abierto { box-shadow: var(--hundido); transform: none; }
+.btn-menu.abierto i { margin: -1.25px; }
+.btn-menu.abierto i:nth-child(1) { transform: rotate(-45deg); }
+.btn-menu.abierto i:nth-child(2) { transform: scale(0); }
+.btn-menu.abierto i:nth-child(3) { transform: rotate(45deg); }
 .boton-icono svg { width: 17px; height: 17px; stroke: var(--tinta-2); }
 .boton-icono:hover { transform: translateY(-2px); }
 .boton-icono:active { box-shadow: var(--hundido); transform: scale(.94); }
@@ -806,3 +829,90 @@ body.con-veredicto .pie-accion { opacity: 0; pointer-events: none; transform: tr
   font-size: 10.5px; font-weight: 900; color: var(--a-texto);
   box-shadow: var(--hundido-suave);
 }
+
+
+/* ---- intro ------------------------------------------------------------- */
+/* Anillos hundidos que salen del centro en cadena; detrás aparece el logo.
+   Se quita sola: no hay nada que pulsar para pasar de aquí. */
+.intro {
+  position: fixed; inset: 0; z-index: 200;
+  display: grid; place-items: center;
+  background: var(--lienzo);
+  transition: opacity .5s ease, transform .5s var(--spring);
+}
+.intro.fuera { opacity: 0; transform: scale(1.06); pointer-events: none; }
+
+.intro-anillos { position: absolute; display: grid; place-items: center; }
+.intro-anillos span {
+  position: absolute; border-radius: 50%;
+  box-shadow: inset .5rem .5rem 1rem var(--oscura), inset -.5rem -.5rem 1rem var(--luz);
+  transform: scale(0);
+  animation: anillo-sale .95s cubic-bezier(.22, 1.5, .36, 1) forwards;
+}
+.intro-anillos span:nth-child(1) { width: 96px;  height: 96px;  animation-delay: .05s; }
+.intro-anillos span:nth-child(2) { width: 168px; height: 168px; animation-delay: .17s; }
+.intro-anillos span:nth-child(3) { width: 244px; height: 244px; animation-delay: .29s; }
+.intro-anillos span:nth-child(4) { width: 324px; height: 324px; animation-delay: .41s; }
+.intro-anillos span:nth-child(5) { width: 410px; height: 410px; animation-delay: .53s; }
+@keyframes anillo-sale { from { transform: scale(0); } to { transform: scale(1); } }
+
+.intro-logo {
+  position: relative; display: grid; place-items: center;
+  width: 76px; height: 76px; border-radius: 24px;
+  background: var(--grad); color: #fff;
+  font-weight: 900; font-size: 26px; letter-spacing: .02em;
+  box-shadow: .6rem .6rem 1.2rem var(--oscura), -.3rem -.3rem 1rem var(--luz);
+  opacity: 0; transform: scale(.55);
+  animation: logo-entra .75s cubic-bezier(.22, 1.45, .36, 1) .5s forwards;
+}
+@keyframes logo-entra {
+  from { opacity: 0; transform: scale(.55); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.intro-nombre {
+  position: absolute; bottom: 18%;
+  font-weight: 800; font-size: 14px; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--tinta-3);
+  opacity: 0; animation: nombre-entra .6s ease .9s forwards;
+}
+@keyframes nombre-entra { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+@media (max-width: 420px) {
+  .intro-anillos span:nth-child(4) { width: 288px; height: 288px; }
+  .intro-anillos span:nth-child(5) { width: 356px; height: 356px; }
+}
+
+/* Quien pide menos movimiento ve el logo directamente, sin cadena de anillos. */
+@media (prefers-reduced-motion: reduce) {
+  .intro-anillos span { animation-duration: .01s; animation-delay: 0s; }
+  .intro-logo, .intro-nombre { animation-duration: .2s; animation-delay: 0s; }
+}
+
+
+/* ---- menú (sale de detrás de la barra, anclado al botón) --------------- */
+#menu-velo {
+  position: fixed; inset: 0; z-index: 31;   /* por encima de las pestañas (30) */
+  background: rgba(45, 55, 82, .28);
+  opacity: 0; transition: opacity .28s ease;
+}
+#menu-velo.entra { opacity: 1; }
+
+#menu-panel {
+  position: fixed; z-index: 32;
+  width: min(340px, calc(100vw - var(--gut) * 2));
+  background: var(--lienzo); border-radius: 1.4rem; padding: 8px 22px 20px;
+  box-shadow: var(--relieve-grande);
+  transform-origin: top right;
+  transform: translateY(-14px) scale(.94); opacity: 0;
+  transition: transform .38s var(--spring-fuerte), opacity .22s ease;
+  max-height: calc(100vh - 100px); overflow-y: auto;
+}
+#menu-panel.entra { transform: none; opacity: 1; }
+#menu-panel h2 { margin: 12px 0 4px; font-size: 17px; }
+#menu-panel .fila {
+  display: flex; align-items: center; justify-content: space-between; gap: 14px;
+  padding: 14px 0;
+}
+#menu-panel .fila + .fila { border-top: 2px solid rgba(200, 208, 231, .45); }
+#menu-panel .btn { padding: 8px 14px; }
