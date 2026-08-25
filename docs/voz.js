@@ -109,8 +109,10 @@ const Voz = (() => {
 
   api.di = (texto, opciones = {}) => {
     texto = String(texto).trim();
+    // `dinamico` salta los pregrabados: el tutor de Conversar habla SIEMPRE con
+    // la voz de la nube, para que el saludo y las respuestas sean la misma voz.
     const clave = (opciones.voz === 'b' ? 'b|' : 'a|') + texto;
-    const archivo = (typeof AUDIO_MAPA !== 'undefined') && (AUDIO_MAPA[clave] || AUDIO_MAPA['a|' + texto]);
+    const archivo = !opciones.dinamico && (typeof AUDIO_MAPA !== 'undefined') && (AUDIO_MAPA[clave] || AUDIO_MAPA['a|' + texto]);
     if (archivo) { suenaMP3(archivo, opciones); return; }
     if (api.nube) {
       suenaNube(texto, opciones).then((sono) => { if (!sono) suenaSintetizador(texto, opciones); });

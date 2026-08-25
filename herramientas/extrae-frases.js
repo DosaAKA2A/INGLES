@@ -41,7 +41,6 @@ for (const u of CURSO) {
   u.ejercicios.forEach(deEjercicio);
   u.examen.forEach(deEjercicio);
 }
-mete('Hello! I am your English tutor. What is your name?');
 
 fs.writeFileSync(path.join(RAIZ, 'frases.json'), JSON.stringify({ a: [...a], b: [...b] }, null, 1));
 console.log('voz A:', a.size, '| voz B:', b.size);

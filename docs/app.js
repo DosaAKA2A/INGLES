@@ -865,7 +865,7 @@ function vCharla() {
     if (rol !== 'user') {
       div.style.cursor = 'pointer';
       div.title = 'Escuchar';
-      div.addEventListener('click', () => Voz.di(partes[0].trim(), { lento: AJ.lento }));
+      div.addEventListener('click', () => Voz.di(partes[0].trim(), { lento: AJ.lento, dinamico: true }));
     }
     msgs.appendChild(div);
     div.scrollIntoView({ block: 'end', behavior: 'smooth' });
@@ -876,7 +876,7 @@ function vCharla() {
     const saludo = 'Hello! I am your English tutor. What is your name?';
     charlaHist.push({ role: 'assistant', content: saludo });
     pintaMsg('assistant', saludo);
-    Voz.di(saludo, { lento: AJ.lento });
+    Voz.di(saludo, { lento: AJ.lento, dinamico: true });
   }
 
   const manda = async () => {
@@ -897,7 +897,7 @@ function vCharla() {
       if (!r.ok) throw new Error(data.error || ('fallo ' + r.status));
       charlaHist.push({ role: 'assistant', content: data.texto });
       pintaMsg('assistant', data.texto);
-      Voz.di(data.texto.split('[Mejor:')[0].trim(), { lento: AJ.lento });
+      Voz.di(data.texto.split('[Mejor:')[0].trim(), { lento: AJ.lento, dinamico: true });
       daXP(3);
     } catch (err) {
       pintaMsg('assistant', 'No pude responder: ' + err.message +

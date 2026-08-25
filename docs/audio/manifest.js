@@ -882,7 +882,6 @@ const AUDIO_MAPA = {
 "a|She is looking for her keys.": "61c03c622fea.mp3",
 "a|What is he doing?": "acbdb7470902.mp3",
 "a|I am not sleeping, I am reading.": "35962cf93fc8.mp3",
-"a|Hello! I am your English tutor. What is your name?": "445caf5cc8bd.mp3",
 "b|Hi! How are you?": "6f9be9136cf8.mp3",
 "b|I'm fine. What's your name?": "04c364a02b67.mp3",
 "b|I'm Tom. Nice to meet you, Ana.": "d4f1c117ef27.mp3",
