@@ -78,13 +78,21 @@ for (const u of CURSO) {
   };
 
   for (const l of u.lecciones) {
+    // lo que la leccion presenta cuenta como enseñado ANTES de revisar su
+    // escena: la escena es justamente donde se presenta
     (l.nuevas || []).forEach((i) => { ensena(u.vocab[i].en); if (u.vocab[i].ej) ensena(u.vocab[i].ej); });
     (l.regalos || []).forEach((w) => bolsa.add(w));
+    if (l.escena) {
+      l.escena.lineas.filter((x) => !x.t).forEach((x) => revisa({ tipo: 'escucha', en: x.en }, l.id + ' escena'));
+    }
     if (l.dialogo) {
       l.dialogo.lineas.forEach((x) => revisa({ tipo: 'escucha', en: x.en }, l.id + ' diálogo'));
       l.dialogo.preguntas.forEach((ej, i) => revisa(ej, l.id + ' pregunta#' + i));
     }
     (l.ejercicios || []).forEach((ej, i) => revisa(ej, l.id + ' ej#' + i));
+    (l.entiende || []).forEach((ej, i) => revisa(ej, l.id + ' entiende#' + i));
+    (l.practica || []).forEach((ej, i) => revisa(ej, l.id + ' practica#' + i));
+    (l.produce || []).forEach((ej, i) => revisa(ej, l.id + ' produce#' + i));
   }
   u.examen.forEach((ej, i) => revisa(ej, 'examen#' + i));
   bolsa.forEach((w) => acumuladoCurso.add(w));

@@ -46,8 +46,12 @@ for (const u of CURSO) {
   if (u.lecciones) {
     for (const l of u.lecciones) {
       deHTML(l.html);
+      if (l.escena) l.escena.lineas.filter((x) => !x.t).forEach((x) => mete(x.en, x.q === 'B' ? 'b' : 'a'));
       if (l.dialogo) deDialogo(l.dialogo);
       (l.ejercicios || []).forEach(deEjercicio);
+      (l.entiende || []).forEach(deEjercicio);
+      (l.practica || []).forEach(deEjercicio);
+      (l.produce || []).forEach(deEjercicio);
     }
   } else {
     u.gramatica.forEach((g) => deHTML(g.html));

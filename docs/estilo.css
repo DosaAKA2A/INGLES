@@ -465,11 +465,18 @@ h2 { font-weight: 900; font-size: 19px; margin: 28px 0 12px; }
 .veredicto.visible { transform: none; }
 .veredicto-inner {
   max-width: var(--maxw); margin: 0 auto; pointer-events: auto;
-  display: flex; align-items: center; gap: 14px;
-  padding: 18px 16px 22px 20px;
+  /* rejilla: cara + texto arriba (el texto respira a lo ancho), acciones abajo.
+     Con flex, un "porque" largo estrujaba el texto contra el boton. */
+  display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start;
+  column-gap: 14px; row-gap: 12px;
+  padding: 18px 20px 22px;
   border-radius: 1.6rem 1.6rem 0 0;
   background: var(--lienzo);
   box-shadow: 0 -.6rem 1.4rem var(--oscura);
+}
+.veredicto-acciones {
+  grid-column: 1 / -1;
+  display: flex; align-items: center; justify-content: flex-end; gap: 12px;
 }
 .veredicto-cara {
   flex: none; display: grid; place-items: center;
@@ -925,3 +932,29 @@ body.con-veredicto .pie-accion { opacity: 0; pointer-events: none; transform: tr
 }
 #menu-panel .fila + .fila { border-top: 2px solid rgba(200, 208, 231, .45); }
 #menu-panel .btn { padding: 8px 14px; }
+
+
+/* ---- metodo PPP: fases, uso y porque ----------------------------------- */
+.fase-chip {
+  display: inline-flex; align-items: center;
+  padding: 6px 14px; border-radius: 999px; margin-bottom: 12px;
+  box-shadow: var(--hundido-suave);
+  font-weight: 800; font-size: 11.5px; letter-spacing: .13em; text-transform: uppercase;
+  color: var(--a-texto);
+}
+.fase-chip.f-produce { color: #fff; background: var(--grad); box-shadow: var(--relieve); }
+
+/* el "cuando se usa" de una palabra, en su tarjeta */
+.carta-uso {
+  margin-top: 10px; font-size: 14.5px; font-weight: 700; color: var(--a-texto);
+}
+
+/* el porque de una respuesta, dentro del veredicto */
+.veredicto-por { margin-top: 7px; font-size: 13.5px; font-weight: 600; opacity: .92; }
+
+/* acotaciones de la escena ("Por la tarde...") */
+.escena-acota {
+  text-align: center; margin: 14px 0 10px;
+  font-weight: 800; font-size: 11.5px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--tinta-3);
+}

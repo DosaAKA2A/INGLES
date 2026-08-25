@@ -729,6 +729,7 @@ function corredor({ titulo, ejercicios, repetirFallos, alAcierto, alFallo, alTer
   function resuelve(ejPintado, ok, detalle) {
     const ej = ejPintado._crudo || ejPintado;
     if (ejPintado.pista) detalle.pista = ejPintado.pista;
+    if (ejPintado.por) detalle.por = ejPintado.por;   // el porque de la respuesta
     const esRepe = yaRepetido.has(ej);
     hechos++;   // sin tope: si hay repasos, la tanda es mas larga y se dice
     const xpAntes = P.xp;
@@ -751,6 +752,10 @@ function corredor({ titulo, ejercicios, repetirFallos, alAcierto, alFallo, alTer
     // todos el nombre real de la persona.
     const ej = resuelveNombre(ejCrudo);
     const tipo = ej.tipo;
+    // La ficha de fase situa al alumno: entender no es lo mismo que producir.
+    const FASES = { entiende: '¿Entendiste la escena?', practica: 'Practica', produce: 'Ahora tú' };
+    const chipFase = ej.fase && FASES[ej.fase]
+      ? `<span class="fase-chip f-${ej.fase}">${FASES[ej.fase]}</span>` : '';
     let cuerpo = '';
     const consignas = {
       opcion: 'Elige la respuesta correcta',
@@ -806,7 +811,7 @@ function corredor({ titulo, ejercicios, repetirFallos, alAcierto, alFallo, alTer
         <div class="parejas">${mezcla.map((c) => `<button class="pareja" data-par="${c.par}" data-lado="${c.lado}">${esc(mayus(c.t))}</button>`).join('')}</div>`;
     }
 
-    vista().innerHTML = cabecera() + cuerpo;
+    vista().innerHTML = cabecera() + chipFase + cuerpo;
     $('#salir').addEventListener('click', () => { Voz.calla(); vInicio(); });
 
     // audio lento del dictado
@@ -948,10 +953,13 @@ function corredor({ titulo, ejercicios, repetirFallos, alAcierto, alFallo, alTer
         <div class="veredicto-titulo">${ok ? alAzar(ANIMOS_ACIERTO) : alAzar(ANIMOS_FALLO)}</div>
         ${detalle.nota ? `<div class="veredicto-detalle">${esc(detalle.nota)}</div>` : ''}
         ${(!ok || detalle.di) ? `<div class="veredicto-detalle">${ok ? '' : '<span class="vd-resp">La correcta era:</span> <b>' + esc(detalle.correcta) + '</b>'}${detalle.di ? ' ' + botonAudio(detalle.di) : ''}</div>` : ''}
+        ${detalle.por ? `<div class="veredicto-por">${conNombre(detalle.por)}</div>` : ''}
         ${detalle.pista ? `<div class="veredicto-pista">${esc(detalle.pista)}</div>` : ''}
       </div>
-      ${detalle.pts > 0 ? `<span class="vd-pts">+${detalle.pts} pts</span>` : ''}
-      <button class="btn ${ok ? 'acento' : 'mal'}" id="sigue">Seguir</button>
+      <div class="veredicto-acciones">
+        ${detalle.pts > 0 ? `<span class="vd-pts">+${detalle.pts} pts</span>` : ''}
+        <button class="btn ${ok ? 'acento' : 'mal'}" id="sigue">Seguir</button>
+      </div>
     </div>`;
     if (navigator.vibrate) { try { navigator.vibrate(ok ? 12 : [40, 50, 40]); } catch (e) {} }
     document.body.appendChild(capa);
@@ -1315,7 +1323,7 @@ function modalPase(despues) {
 // idiomas — solo la tarea y el boton de abajo.
 const observador = new MutationObserver(() => {
   const v = vista();
-  document.body.classList.toggle('en-leccion', !!v.querySelector('.ej-cabecera, .celebra, .onboarding'));
+  document.body.classList.toggle('en-leccion', !!v.querySelector('.ej-cabecera, .celebra, .onboarding, .escena'));
 
   // El pie de accion es position:fixed, pero la animacion de entrada aplica un
   // TRANSFORM a la vista, y un ancestro transformado convierte fixed en

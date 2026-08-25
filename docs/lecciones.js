@@ -107,10 +107,75 @@ function vLeccion(unidad, idx) {
   vistaActual = 'leccion';
   const l = unidad.lecciones[idx];
   if (l.tipo === 'dialogo') return vLeccionDialogo(unidad, idx);
+  if (l.escena) return vEscena(unidad, idx);        // el contexto va PRIMERO
+  despuesDeEscena(unidad, idx);
+}
+
+// Lo que sigue a la escena: tarjetas si hay palabras, explicacion si la hay,
+// y si no, directo a los ejercicios.
+function despuesDeEscena(unidad, idx) {
+  const l = unidad.lecciones[idx];
   const nuevas = (l.nuevas || []).map((i) => ({ i, v: unidad.vocab[i] }));
   if (nuevas.length) return vTarjetas(unidad, idx, nuevas, 0);
   if (l.html) return vLeccionExplica(unidad, idx);
-  empiezaEjerciciosDeLeccion(unidad, idx);   // leccion de pura practica
+  empiezaEjerciciosDeLeccion(unidad, idx);
+}
+
+// Fase 1 — la escena: un dialogo corto donde suena lo nuevo ANTES de
+// estudiarlo. Modelo Busuu/PPP: primero oyes la lengua usada de verdad, con
+// su traduccion a la vista; las palabras se estudian despues, ya con contexto.
+function vEscena(unidad, idx) {
+  const l = unidad.lecciones[idx];
+  const e = l.escena;
+  let filas = '';
+  e.lineas.forEach((x, i) => {
+    if (x.t) { filas += `<p class="escena-acota">${esc(x.t)}</p>`; return; }
+    filas += `<div class="linea ${x.q === 'B' ? 'b' : ''}">
+      <span class="linea-quien">${esc(x.q)}</span>
+      <div class="globo" data-idx="${i}">${esc(x.en)}<span class="globo-es">${esc(x.es)}</span></div>
+    </div>`;
+  });
+  vista().innerHTML = `
+    <button class="volver" id="salir">${ICO.atras} ${esc(unidad.titulo)}</button>
+    <span class="etiqueta">${esc(l.titulo)}</span>
+    <h1>${esc(e.titulo || 'La escena')}</h1>
+    <p class="entradilla">${esc(e.lugar || '')}</p>
+    <p class="gris chica" style="margin-top:6px">Primero escucha: no hace falta entenderlo todo. Toca un globo para repetirlo. Lo nuevo lo estudiamos justo después.</p>
+    <div class="acciones" style="margin:14px 0 16px">
+      <button class="btn secundario" id="reproducir">${ICO.altavoz} Escuchar la escena</button>
+    </div>
+    <div class="ficha escena"><div class="dialogo">${filas}</div></div>
+    <div class="pie-accion"><button class="btn ancho acento" id="sigue">Descubre lo que oíste</button></div>`;
+
+  $('#salir').addEventListener('click', () => { Voz.calla(); vUnidad(unidad.id); });
+
+  const habladas = e.lineas.filter((x) => !x.t);
+  vista().querySelectorAll('.globo').forEach((g) => {
+    g.addEventListener('click', () => {
+      const x = e.lineas[+g.dataset.idx];
+      document.querySelectorAll('.globo.sonando').forEach((y) => y.classList.remove('sonando'));
+      g.classList.add('sonando');
+      Voz.di(x.en, { lento: AJ.lento, voz: x.q === 'B' ? 'b' : 'a', alTerminar: () => g.classList.remove('sonando') });
+    });
+  });
+
+  let tocando = false;
+  $('#reproducir').addEventListener('click', () => {
+    if (tocando) { tocando = false; Voz.calla(); return; }
+    tocando = true;
+    const globos = [...vista().querySelectorAll('.globo')];
+    const toca = (n) => {
+      if (!tocando || n >= habladas.length) { tocando = false; return; }
+      const x = habladas[n];
+      globos.forEach((y) => y.classList.remove('sonando'));
+      globos[n].classList.add('sonando');
+      globos[n].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      Voz.di(x.en, { lento: AJ.lento, voz: x.q === 'B' ? 'b' : 'a', alTerminar: () => setTimeout(() => toca(n + 1), 350) });
+    };
+    toca(0);
+  });
+
+  $('#sigue').addEventListener('click', () => { tocando = false; Voz.calla(); despuesDeEscena(unidad, idx); });
 }
 
 // Fase "Aprende": una tarjeta por palabra nueva, con imagen, audio y ejemplo.
@@ -129,6 +194,7 @@ function vTarjetas(unidad, idx, nuevas, pos) {
       ${archivoImagen(v.en) ? `<img class="carta-imagen" src="img/${archivoImagen(v.en)}" alt="">` : ''}
       <p class="carta-en">${esc(mayus(v.en))} ${botonAudio(v.en)}</p>
       <p class="carta-es">${esc(mayus(v.es))}</p>
+      ${v.uso ? `<p class="carta-uso">${conNombre(v.uso)}</p>` : ''}
       ${v.nota ? `<p class="carta-nota">${conNombre(v.nota)}</p>` : ''}
       ${v.ej ? `<p class="carta-ej">${esc(v.ej)} ${botonAudio(v.ej)}</p>` : ''}
     </div>
@@ -165,9 +231,15 @@ function vLeccionExplica(unidad, idx) {
 
 function empiezaEjerciciosDeLeccion(unidad, idx) {
   const l = unidad.lecciones[idx];
+  // Gradiente PPP: primero comprension de la escena, luego practica guiada,
+  // al final produccion. El orden ES el metodo: no se baraja.
+  const porFases = [].concat(
+    (l.entiende || []).map((e) => Object.assign({ fase: 'entiende' }, e)),
+    (l.practica || []).map((e) => Object.assign({ fase: 'practica' }, e)),
+    (l.produce || []).map((e) => Object.assign({ fase: 'produce' }, e)));
   corredor({
     titulo: l.titulo,
-    ejercicios: baraja(l.ejercicios),
+    ejercicios: porFases.length ? porFases : baraja(l.ejercicios),
     repetirFallos: true,
     alAcierto: (ej, primerIntento) => {
       daXP(primerIntento ? 10 : 5);
@@ -211,12 +283,12 @@ function vLeccionDialogo(unidad, idx) {
     <button class="volver" id="volver">${ICO.atras} ${esc(unidad.titulo)}</button>
     <span class="etiqueta">${esc(l.titulo)}</span>
     <h1>${esc(dlg.titulo)}</h1>
-    <p class="entradilla">Todo lo del diálogo ya lo viste en las lecciones. Escúchalo completo, y cuando lo sigas sin leer la traducción, responde las preguntas.</p>
+    <p class="entradilla">Todo esto ya lo aprendiste. Escúchalo completo, y cuando lo sigas sin leer la traducción, te toca actuar: responde como si te hablaran a ti.</p>
     <div class="acciones" style="margin:14px 0 16px">
       <button class="btn secundario" id="reproducir">${ICO.altavoz} Reproducir todo</button>
     </div>
     <div class="ficha"><div class="dialogo">${lineas}</div></div>
-    <button class="btn ancho acento" id="preguntas">Responder las preguntas</button>`;
+    <button class="btn ancho acento" id="preguntas">Me hablan a mí: responder</button>`;
 
   $('#volver').addEventListener('click', () => { Voz.calla(); vUnidad(unidad.id); });
 
