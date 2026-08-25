@@ -1425,5 +1425,5 @@ bajaProgreso();
     setTimeout(() => intro.remove(), 550);
   };
   intro.addEventListener('pointerdown', quita);
-  setTimeout(quita, 1900);
+  setTimeout(quita, 2100);   // el nombre acaba a 1,85 s; el resto es respiro
 })();
