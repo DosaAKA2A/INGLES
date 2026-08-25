@@ -87,6 +87,9 @@ async function llamaGroq(env, mensajes, maxTokens) {
       model: MODELO,
       messages: mensajes,
       max_completion_tokens: maxTokens,
+      // Sin esto el modelo gasta dos tercios de la salida razonando un saludo
+      // (medido: 401 tokens por turno contra 266 con low, misma respuesta).
+      reasoning_effort: 'low',
       temperature: 0.6
     })
   });
@@ -290,7 +293,7 @@ export default {
         if (!Array.isArray(mensajes) || !mensajes.length) return json({ error: 'sin mensajes' }, 400);
         const sistema = PROMPT_CHAT.replace(/\{NIVEL\}/g, nivel || 'A1');
         // Solo los últimos 16 turnos y solo texto: el historial lo manda la página.
-        const recorte = mensajes.slice(-16).map((m) => ({
+        const recorte = mensajes.slice(-10).map((m) => ({
           role: m.role === 'assistant' ? 'assistant' : 'user',
           content: String(m.content || '').slice(0, 1000)
         }));
