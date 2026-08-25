@@ -698,23 +698,31 @@ function empiezaExamen(unidad) {
 function corredor({ titulo, ejercicios, repetirFallos, alAcierto, alFallo, alTerminar }) {
   vistaActual = 'corredor';
   const cola = ejercicios.slice();
-  const totalPlan = cola.length;
-  let hechos = 0, aciertos = 0;
+  const totalPlan = cola.length;          // los ejercicios distintos de la tanda
+  let hechos = 0, aciertos = 0;           // aciertos A LA PRIMERA (para la nota)
+  let respondidas = 0;                    // todo lo respondido, repeticiones incluidas
   const yaRepetido = new Set();
   let micActivo = null;
+
+  // Lo que queda por delante: lo hecho + la actual + la cola (que crece cuando
+  // se repite un fallo). Antes el contador decia 10/10 y seguian saliendo
+  // preguntas, que es justo lo que Dosa vio.
+  const totalReal = () => hechos + (cola.length ? cola.length : 0) + 1;
 
   function siguiente() {
     Voz.calla();
     if (micActivo) { try { micActivo.abort(); } catch (e) {} micActivo = null; }
-    if (!cola.length) { alTerminar(aciertos, totalPlan); return; }
+    if (!cola.length) { alTerminar(aciertos, totalPlan, respondidas); return; }
     pinta(cola.shift());
   }
 
   function cabecera() {
+    const total = Math.max(totalPlan, totalReal());
+    const repes = total - totalPlan;
     return `<div class="ej-cabecera">
       <button class="volver" id="salir" style="margin:0" title="Salir">${ICO.atras}</button>
-      <div class="ej-barra"><i style="width:${Math.round((hechos / totalPlan) * 100)}%"></i></div>
-      <span class="ej-contador">${Math.min(hechos + 1, totalPlan)}/${totalPlan}</span>
+      <div class="ej-barra"><i style="width:${Math.round((hechos / total) * 100)}%"></i></div>
+      <span class="ej-contador">${hechos + 1}/${total}${repes ? `<b class="ej-repes" title="Repasos de lo que falló">+${repes}</b>` : ''}</span>
     </div>`;
   }
 
@@ -722,10 +730,11 @@ function corredor({ titulo, ejercicios, repetirFallos, alAcierto, alFallo, alTer
     const ej = ejPintado._crudo || ejPintado;
     if (ejPintado.pista) detalle.pista = ejPintado.pista;
     const esRepe = yaRepetido.has(ej);
-    hechos = Math.min(hechos + 1, totalPlan);
+    hechos++;   // sin tope: si hay repasos, la tanda es mas larga y se dice
     const xpAntes = P.xp;
+    respondidas++;
     if (ok) {
-      aciertos++;
+      if (!esRepe) aciertos++;   // la nota mide el acierto A LA PRIMERA
       if (alAcierto) alAcierto(ej, !esRepe);
     } else {
       if (alFallo) alFallo(ej);
@@ -774,6 +783,10 @@ function corredor({ titulo, ejercicios, repetirFallos, alAcierto, alFallo, alTer
       const piezas = baraja(ej.en.split(' ').concat(ej.extra || []));
       cuerpo = `<p class="consigna">${consignas.ordena}</p>
         <p class="enunciado gris" style="font-size:17px">${esc(mayus(ej.es))}</p>
+        <div class="armado-cab">
+          <span class="armado-guia" id="armado-guia">Toca las palabras en orden</span>
+          <button class="btn-reinicia" id="reinicia" hidden>${ICO.refresco} Reiniciar</button>
+        </div>
         <div class="armado" id="armado"></div>
         <div class="banco" id="banco">${piezas.map((p, i) => `<button class="pieza" data-p="${esc(p)}" data-i="${i}">${esc(p)}</button>`).join('')}</div>
         <div class="acciones"><button class="btn" id="comprobar" disabled>Comprobar</button></div>`;
@@ -835,7 +848,18 @@ function corredor({ titulo, ejercicios, repetirFallos, alAcierto, alFallo, alTer
 
     if (tipo === 'ordena') {
       const armado = $('#armado');
-      const actualiza = () => { $('#comprobar').disabled = !armado.children.length; };
+      const reinicia = $('#reinicia');
+      const actualiza = () => {
+        const hay = armado.children.length;
+        $('#comprobar').disabled = !hay;
+        reinicia.hidden = !hay;
+        $('#armado-guia').hidden = !!hay;
+      };
+      reinicia.addEventListener('click', () => {
+        armado.innerHTML = '';
+        $('#banco').querySelectorAll('.pieza.usada').forEach((x) => x.classList.remove('usada'));
+        actualiza();
+      });
       $('#banco').addEventListener('click', (e) => {
         const p = e.target.closest('.pieza');
         if (!p || p.classList.contains('usada')) return;
