@@ -271,7 +271,7 @@ function vInicio() {
   vistaActual = 'inicio';
   const hechas = CURSO.filter((x) => examenAprobado(x.id)).length;
   let html = `<span class="etiqueta">Nivel A0 &ndash; A1</span>
-    <h1>Inglés desde cero</h1>
+    <h1>${P.perfil && P.perfil.nombre ? 'Hola, ' + esc(P.perfil.nombre) : 'Inglés desde cero'}</h1>
     <p class="entradilla">Doce unidades. Cada una se abre aprobando el examen de la anterior.</p>
     <div class="tarjetas-stats">
       <div class="stat"><div class="stat-num">${hechas}<span class="gris" style="font-size:20px">/${CURSO.length}</span></div><div class="stat-nombre">unidades aprobadas</div></div>
@@ -505,7 +505,7 @@ function vEnsayo(unidad) {
       const r = await fetch(API + '/ia/ensayo', {
         method: 'POST',
         headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ consigna: e.consigna, texto: area.value, nivel: unidad.nivel })
+        body: JSON.stringify({ consigna: e.consigna, texto: area.value, nivel: unidad.nivel, nombre: P.perfil && P.perfil.nombre, motivo: P.perfil && etiquetaMotivo(P.perfil.motivo) })
       });
       const data = await r.json();
       if (!r.ok) throw new Error(data.error || ('fallo ' + r.status));
@@ -968,7 +968,9 @@ function vCharla() {
 
   charlaHist.forEach((m) => pintaMsg(m.role, m.content));
   if (!charlaHist.length) {
-    const saludo = 'Hello! I am your English tutor. What is your name?';
+    const saludo = P.perfil && P.perfil.nombre
+      ? 'Hello, ' + P.perfil.nombre + '! Nice to see you. How are you today?'
+      : 'Hello! I am your English tutor. What is your name?';
     charlaHist.push({ role: 'assistant', content: saludo });
     pintaMsg('assistant', saludo);
     Voz.di(saludo, { lento: AJ.lento, dinamico: true });
@@ -986,7 +988,7 @@ function vCharla() {
       const r = await fetch(API + '/ia/chat', {
         method: 'POST',
         headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mensajes: charlaHist, nivel: nivelActual() })
+        body: JSON.stringify({ mensajes: charlaHist, nivel: nivelActual(), nombre: P.perfil && P.perfil.nombre, motivo: P.perfil && etiquetaMotivo(P.perfil.motivo) })
       });
       const data = await r.json();
       if (!r.ok) throw new Error(data.error || ('fallo ' + r.status));
@@ -1061,6 +1063,10 @@ $('#btn-ajustes').addEventListener('click', () => {
       <button class="btn secundario" id="aj-conectar" style="padding:8px 14px">${token ? 'Desconectar' : 'Conectar'}</button>
     </div>
     <div class="fila">
+      <span>Tu perfil<br><span class="gris chica">${P.perfil ? esc(P.perfil.nombre) + ' &middot; ' + esc(etiquetaMotivo(P.perfil.motivo)) + (P.perfil.meta ? ' &middot; ' + P.perfil.meta + ' min/día' : '') : 'Sin completar'}</span></span>
+      <button class="btn secundario" id="aj-perfil" style="padding:8px 14px">Cambiar</button>
+    </div>
+    <div class="fila">
       <span>Borrar progreso<br><span class="gris chica">Solo el de este dispositivo</span></span>
       <button class="btn secundario" id="aj-borrar" style="padding:8px 14px">Borrar</button>
     </div>
@@ -1089,6 +1095,7 @@ $('#btn-ajustes').addEventListener('click', () => {
       cierraModal(); vInicio();
     };
   });
+  capa.querySelector('#aj-perfil').addEventListener('click', () => { cierraModal(); vOnboarding(); });
   capa.querySelector('#aj-cerrar').addEventListener('click', cierraModal);
 });
 
@@ -1139,7 +1146,7 @@ function modalPase(despues) {
 // idiomas — solo la tarea y el boton de abajo.
 new MutationObserver(() => {
   const v = vista();
-  document.body.classList.toggle('en-leccion', !!v.querySelector('.ej-cabecera, .celebra'));
+  document.body.classList.toggle('en-leccion', !!v.querySelector('.ej-cabecera, .celebra, .onboarding'));
   v.classList.remove('vista-entra');
   void v.offsetWidth;
   v.classList.add('vista-entra');

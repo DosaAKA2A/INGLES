@@ -271,9 +271,10 @@ export default {
 
       if (url.pathname === '/ia/ensayo' && req.method === 'POST') {
         if (!env.GROQ_API_KEY) return json({ error: 'sin clave de IA' }, 503);
-        const { consigna, texto, nivel } = await req.json().catch(() => ({}));
+        const { consigna, texto, nivel, nombre, motivo } = await req.json().catch(() => ({}));
         if (!texto || String(texto).trim().length < 5) return json({ error: 'ensayo vacío' }, 400);
-        const sistema = PROMPT_ENSAYO.replace(/\{NIVEL\}/g, nivel || 'A1');
+        let sistema = PROMPT_ENSAYO.replace(/\{NIVEL\}/g, nivel || 'A1');
+        if (nombre || motivo) sistema += '\nContexto: el estudiante' + (nombre ? ' se llama ' + String(nombre).slice(0, 40) : '') + (motivo ? ' y aprende inglés por: ' + String(motivo).slice(0, 60) + ' (el consejo puede orientarse a eso)' : '') + '.';
         const usuario = 'Consigna de la tarea: ' + (consigna || '(libre)') +
           '\n\nTexto del estudiante:\n' + String(texto).slice(0, 4000);
         const crudo = await llamaGroq(env, [
@@ -289,9 +290,12 @@ export default {
 
       if (url.pathname === '/ia/chat' && req.method === 'POST') {
         if (!env.GROQ_API_KEY) return json({ error: 'sin clave de IA' }, 503);
-        const { mensajes, nivel } = await req.json().catch(() => ({}));
+        const { mensajes, nivel, nombre, motivo } = await req.json().catch(() => ({}));
         if (!Array.isArray(mensajes) || !mensajes.length) return json({ error: 'sin mensajes' }, 400);
-        const sistema = PROMPT_CHAT.replace(/\{NIVEL\}/g, nivel || 'A1');
+        let sistema = PROMPT_CHAT.replace(/\{NIVEL\}/g, nivel || 'A1');
+        // el cuestionario de entrada alimenta al tutor: nombre y para que aprende
+        if (nombre) sistema += '\n- El estudiante se llama ' + String(nombre).slice(0, 40) + '.';
+        if (motivo) sistema += '\n- Aprende inglés sobre todo por: ' + String(motivo).slice(0, 60) + '. Cuando salga natural, orienta ejemplos y preguntas hacia ese interés (sin forzarlo en cada turno).';
         // Solo los últimos 16 turnos y solo texto: el historial lo manda la página.
         const recorte = mensajes.slice(-10).map((m) => ({
           role: m.role === 'assistant' ? 'assistant' : 'user',
