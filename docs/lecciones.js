@@ -115,7 +115,7 @@ function vTarjetas(unidad, idx, nuevas, pos) {
     <div class="carta">
       ${archivoImagen(v.en) ? `<img class="carta-imagen" src="img/${archivoImagen(v.en)}" alt="">` : ''}
       <p class="carta-en">${esc(v.en)} ${botonAudio(v.en)}</p>
-      <p class="carta-es">${esc(v.es)}</p>
+      <p class="carta-es">${esc(mayus(v.es))}</p>
       ${v.ej ? `<p class="carta-ej">${esc(v.ej)} ${botonAudio(v.ej)}</p>` : ''}
     </div>
     <div class="acciones">

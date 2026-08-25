@@ -191,6 +191,13 @@ const $ = (sel) => document.querySelector(sel);
 const vista = () => $('#vista');
 let vistaActual = 'inicio';
 
+// Primera letra en mayúscula respetando lo que ya viene capitalizado y sin
+// tocar palabras en inglés que se escriben en minúscula por regla.
+function mayus(t) {
+  const s = String(t);
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
 function esc(t) {
   return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
@@ -311,7 +318,7 @@ function vInicio() {
     <svg width="0" height="0" style="position:absolute"><defs><linearGradient id="grad-anillo" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3ad8f0"/><stop offset="1" stop-color="#1266cc"/></linearGradient></defs></svg>
     <div class="meta-dia">
       <div class="anillo-meta">
-        <svg viewBox="0 0 92 92"><circle class="valor" cx="46" cy="46" r="40" stroke-dasharray="${(C * pct).toFixed(1)} ${C.toFixed(1)}"/></svg>
+        <svg viewBox="0 0 92 92">${pct > 0 ? `<circle class="valor" cx="46" cy="46" r="40" stroke-dasharray="${(C * pct).toFixed(1)} ${C.toFixed(1)}"/>` : ''}</svg>
         <span class="anillo-centro">${minHoy}<small>de ${meta} min</small></span>
       </div>
       <div class="meta-info">
@@ -598,6 +605,15 @@ function pintaCorreccion(unidad, c) {
 // Recorre una lista de ejercicios de cualquier tipo, pinta el veredicto y, si
 // se pide, repite al final los que salieron mal (una vez).
 
+// El error no regaña: invita a reintentar. Se elige uno al azar para que no
+// canse la repetición (petición de Dosa: "que le den ganas de mejorar").
+const ANIMOS_FALLO = [
+  'Casi', 'Vuelve a intentarlo', 'Ya casi lo tienes', 'Por poco',
+  'Se aprende así', 'Otra vez y sale'
+];
+const ANIMOS_ACIERTO = ['Correcto', 'Muy bien', 'Perfecto', 'Eso es', 'Excelente'];
+const alAzar = (lista) => lista[Math.floor(Math.random() * lista.length)];
+
 function baraja(arr) {
   const a = arr.slice();
   for (let i = a.length - 1; i > 0; i--) {
@@ -709,11 +725,11 @@ function corredor({ titulo, ejercicios, repetirFallos, alAcierto, alFallo, alTer
       cuerpo = `<p class="consigna">${consignas[tipo]}</p>
         ${ej.audio ? ilustracionGrande(ej.audio) : ''}
         <p class="enunciado">${ej.audio ? botonAudio(ej.audio) : ''}${enun}</p>
-        <div class="opciones">${ej.opciones.map((o, i) => `<button class="opcion" data-i="${i}">${esc(o)}</button>`).join('')}</div>`;
+        <div class="opciones">${ej.opciones.map((o, i) => `<button class="opcion" data-i="${i}">${esc(mayus(o))}</button>`).join('')}</div>`;
     } else if (tipo === 'traduce') {
       cuerpo = `<p class="consigna">${consignas.traduce}</p>
         ${ilustracionGrande(ej.en[0])}
-        <p class="enunciado">${esc(ej.es)}</p>
+        <p class="enunciado">${esc(mayus(ej.es))}</p>
         <input class="respuesta-texto" id="resp" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="In English...">
         <div class="pie-accion"><button class="btn ancho acento" id="comprobar">Comprobar</button></div>`;
     } else if (tipo === 'escucha') {
@@ -724,14 +740,14 @@ function corredor({ titulo, ejercicios, repetirFallos, alAcierto, alFallo, alTer
     } else if (tipo === 'ordena') {
       const piezas = baraja(ej.en.split(' ').concat(ej.extra || []));
       cuerpo = `<p class="consigna">${consignas.ordena}</p>
-        <p class="enunciado gris" style="font-size:17px">${esc(ej.es)}</p>
+        <p class="enunciado gris" style="font-size:17px">${esc(mayus(ej.es))}</p>
         <div class="armado" id="armado"></div>
         <div class="banco" id="banco">${piezas.map((p, i) => `<button class="pieza" data-p="${esc(p)}" data-i="${i}">${esc(p)}</button>`).join('')}</div>
         <div class="acciones"><button class="btn" id="comprobar" disabled>Comprobar</button></div>`;
     } else if (tipo === 'habla') {
       cuerpo = `<p class="consigna">${consignas.habla}</p>
         <p class="hablar-frase">${botonAudio(ej.en)} ${esc(ej.en)}</p>
-        <p class="hablar-fon gris">${esc(ej.es)}</p>
+        <p class="hablar-fon gris">${esc(mayus(ej.es))}</p>
         <button class="btn-mic" id="mic">${ICO.mic} Toca y habla</button>
         <div class="oido" id="oido"></div>
         <div class="pie-accion"><button class="btn ancho secundario" id="saltar">No puedo hablar ahora</button></div>`;
@@ -741,7 +757,7 @@ function corredor({ titulo, ejercicios, repetirFallos, alAcierto, alFallo, alTer
       const mezcla = [];
       for (let i = 0; i < izquierda.length; i++) { mezcla.push(izquierda[i], derecha[i]); }
       cuerpo = `<p class="consigna">${consignas.parejas}</p>
-        <div class="parejas">${mezcla.map((c) => `<button class="pareja" data-par="${c.par}" data-lado="${c.lado}">${esc(c.t)}</button>`).join('')}</div>`;
+        <div class="parejas">${mezcla.map((c) => `<button class="pareja" data-par="${c.par}" data-lado="${c.lado}">${esc(c.lado === 'b' ? mayus(c.t) : c.t)}</button>`).join('')}</div>`;
     }
 
     vista().innerHTML = cabecera() + cuerpo;
@@ -762,7 +778,11 @@ function corredor({ titulo, ejercicios, repetirFallos, alAcierto, alFallo, alTer
         b.classList.add(ok ? 'ok' : 'no');
         if (!ok) vista().querySelectorAll('.opcion')[ej.r].classList.add('ok');
         const correcta = ej.opciones[ej.r];
-        const dicho = ej.di || (tipo === 'huecos' ? (ej.antes + ' ' + correcta + ' ' + (ej.despues || '')).trim() : null);
+        // OJO: en 'huecos' el enunciado suele llevar el contexto en ESPAÑOL
+        // ("Son las 4 de la tarde: Good ___"). Mandar eso a la voz inglesa
+        // sonaba fatal (lo pilló Dosa). Solo se dice la palabra, salvo que el
+        // ejercicio traiga un `di` explícito en inglés.
+        const dicho = ej.di || (tipo === 'huecos' ? correcta : null);
         resuelve(ej, ok, { correcta, di: dicho });
       }));
     }
@@ -868,9 +888,9 @@ function corredor({ titulo, ejercicios, repetirFallos, alAcierto, alFallo, alTer
     capa.innerHTML = `<div class="veredicto-inner">
       <div class="veredicto-cara">${ok ? ICO.check : ICO.equis}</div>
       <div class="veredicto-texto">
-        <div class="veredicto-titulo">${ok ? 'Correcto' : 'No es así'}</div>
+        <div class="veredicto-titulo">${ok ? alAzar(ANIMOS_ACIERTO) : alAzar(ANIMOS_FALLO)}</div>
         ${detalle.nota ? `<div class="veredicto-detalle">${esc(detalle.nota)}</div>` : ''}
-        ${(!ok || detalle.di) ? `<div class="veredicto-detalle">${ok ? '' : '<span class="vd-resp">Respuesta:</span> <b>' + esc(detalle.correcta) + '</b>'}${detalle.di ? ' ' + botonAudio(detalle.di) : ''}</div>` : ''}
+        ${(!ok || detalle.di) ? `<div class="veredicto-detalle">${ok ? '' : '<span class="vd-resp">La correcta era:</span> <b>' + esc(detalle.correcta) + '</b>'}${detalle.di ? ' ' + botonAudio(detalle.di) : ''}</div>` : ''}
         ${detalle.pista ? `<div class="veredicto-pista">${esc(detalle.pista)}</div>` : ''}
       </div>
       ${detalle.pts > 0 ? `<span class="vd-pts">+${detalle.pts} pts</span>` : ''}
@@ -883,8 +903,14 @@ function corredor({ titulo, ejercicios, repetirFallos, alAcierto, alFallo, alTer
     // la pestana recuperaba el foco.
     void capa.offsetHeight;
     capa.classList.add('visible');
+    document.body.classList.add('con-veredicto');
     if (ok && detalle.di) Voz.di(detalle.di, { lento: false });
-    const cierra = () => { capa.remove(); document.removeEventListener('keydown', porTecla); continuar(); };
+    const cierra = () => {
+      capa.remove();
+      document.body.classList.remove('con-veredicto');
+      document.removeEventListener('keydown', porTecla);
+      continuar();
+    };
     const porTecla = (e) => { if (e.key === 'Enter') cierra(); };
     capa.querySelector('#sigue').addEventListener('click', cierra);
     document.addEventListener('keydown', porTecla);
@@ -911,7 +937,7 @@ function resumenTanda(aciertos, total, mensaje, alSeguir) {
     <div class="celebra">
       ${bien ? `<div class="confeti" aria-hidden="true">${confeti}</div>` : ''}
       <div class="celebra-cara ${bien ? 'bien' : 'meh'}">${bien ? ICO.diploma : ICO.refresco}</div>
-      <h1 class="celebra-titulo">${bien ? '¡Así se hace!' : 'Casi, casi'}</h1>
+      <h1 class="celebra-titulo">${bien ? '¡Así se hace!' : '¡Vas por buen camino!'}</h1>
       <p class="entradilla centrado" style="margin:0 auto">${esc(mensaje)}</p>
       <div class="celebra-stats">
         <div class="celebra-stat"><span class="etiqueta" style="margin:0 0 6px">Puntuación</span><div class="puntaje-grande ${clase}" id="cifra">0<span class="cifra-chica">%</span></div></div>
@@ -1198,6 +1224,7 @@ function modalPase(despues) {
 new MutationObserver(() => {
   const v = vista();
   document.body.classList.toggle('en-leccion', !!v.querySelector('.ej-cabecera, .celebra, .onboarding'));
+  document.body.classList.toggle('con-pie', !!v.querySelector('.pie-accion'));
   v.classList.remove('vista-entra');
   void v.offsetWidth;
   v.classList.add('vista-entra');

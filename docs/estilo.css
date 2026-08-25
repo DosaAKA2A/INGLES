@@ -63,9 +63,13 @@ body {
   background: var(--lienzo);
   color: var(--tinta);
   font: 600 16px/1.55 var(--font);
-  padding-bottom: 108px;
   -webkit-font-smoothing: antialiased;
 }
+/* Hueco para las piezas FIJAS de abajo, como VARIABLE: el shorthand `padding`
+   de main (mas abajo) pisaba cualquier padding-bottom suelto puesto aqui. */
+:root { --pie-hueco: 132px; }
+body.en-leccion { --pie-hueco: 150px; }
+body.con-pie { --pie-hueco: 160px; }
 
 button { font: inherit; color: inherit; cursor: pointer; background: none; border: 0; }
 input, textarea { font: inherit; color: var(--tinta); }
@@ -85,7 +89,6 @@ main.vista-entra > * { animation: vista-pop .34s var(--spring-fuerte) backwards;
 }
 
 body.en-leccion .tabs { display: none; }
-body.en-leccion { padding-bottom: 132px; }
 
 /* ---- barra superior ---- */
 .barra {
@@ -129,7 +132,7 @@ body.en-leccion { padding-bottom: 132px; }
 .boton-icono:active { box-shadow: var(--hundido); transform: scale(.94); }
 
 /* ---- contenido ---- */
-main { max-width: var(--maxw); margin: 0 auto; padding: 30px var(--gut) 40px; }
+main { max-width: var(--maxw); margin: 0 auto; padding: 30px var(--gut) var(--pie-hueco); }
 
 h1 { font-weight: 900; font-size: clamp(27px, 5.2vw, 36px); line-height: 1.12; letter-spacing: -.02em; margin-bottom: 8px; }
 h2 { font-weight: 900; font-size: 19px; margin: 28px 0 12px; }
@@ -171,7 +174,7 @@ h2 { font-weight: 900; font-size: 19px; margin: 28px 0 12px; }
 .dia.hoy { color: var(--a-texto); }
 
 /* ---- lista de unidades ---- */
-.unidades { margin-top: 20px; display: grid; gap: 12px; }
+.unidades { margin-top: 20px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
 .unidad {
   position: relative; display: flex; align-items: center; gap: 16px;
   width: 100%; text-align: left; padding: 13px 16px;
@@ -270,7 +273,7 @@ h2 { font-weight: 900; font-size: 19px; margin: 28px 0 12px; }
 }
 
 /* ---- vocabulario ---- */
-.vocab-lista { display: grid; gap: 4px; }
+.vocab-lista { display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; }
 .vocab {
   display: flex; align-items: center; gap: 14px;
   padding: 10px; border-radius: 14px;
@@ -316,7 +319,7 @@ h2 { font-weight: 900; font-size: 19px; margin: 28px 0 12px; }
 .gram .nota b { color: var(--tinta); }
 
 /* ---- diálogo ---- */
-.dialogo { display: grid; gap: 12px; }
+.dialogo { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
 .linea { display: flex; gap: 10px; max-width: 88%; }
 .linea.b { margin-left: auto; flex-direction: row-reverse; }
 .linea-quien {
@@ -362,7 +365,7 @@ h2 { font-weight: 900; font-size: 19px; margin: 28px 0 12px; }
   box-shadow: var(--relieve);
 }
 
-.opciones { display: grid; gap: 12px; }
+.opciones { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
 .opcion {
   position: relative; text-align: left; font-weight: 700; font-size: 16px;
   padding: 15px 18px; border-radius: var(--r);
@@ -431,7 +434,7 @@ h2 { font-weight: 900; font-size: 19px; margin: 28px 0 12px; }
 
 /* ---- veredicto: sube con resorte pesado ---- */
 .veredicto {
-  position: fixed; left: 0; right: 0; bottom: 0; z-index: 25;
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 26;
   padding: 0 var(--gut);
   transform: translateY(115%); transition: transform .38s var(--spring-fuerte);
   pointer-events: none;
@@ -493,11 +496,16 @@ h2 { font-weight: 900; font-size: 19px; margin: 28px 0 12px; }
 .btn svg { width: 16px; height: 16px; }
 .acciones { display: flex; gap: 12px; margin-top: 22px; }
 
+/* Cuando el veredicto esta arriba, el pie se va: son la misma accion. */
+body.con-veredicto .pie-accion { opacity: 0; pointer-events: none; transform: translateY(60%); }
 .pie-accion {
   position: fixed; left: 0; right: 0; z-index: 24;
-  bottom: calc(var(--marco) + env(safe-area-inset-bottom));
-  padding: 0 var(--gut);
+  transition: opacity var(--dur) ease, transform var(--dur) var(--spring);
+  bottom: 0;
+  padding: 14px var(--gut) calc(14px + env(safe-area-inset-bottom));
   display: flex; justify-content: center;
+  /* velo del propio lienzo: el contenido no se ve "por debajo" del boton */
+  background: linear-gradient(to top, var(--lienzo) 62%, rgba(228, 235, 245, 0));
 }
 .pie-accion .btn { max-width: var(--maxw); width: 100%; padding: 17px 26px; font-size: 16px; }
 
@@ -517,7 +525,7 @@ h2 { font-weight: 900; font-size: 19px; margin: 28px 0 12px; }
 }
 .ensayo-area::placeholder { color: var(--tinta-3); }
 
-.correccion { display: grid; gap: 12px; margin-top: 16px; }
+.correccion { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; margin-top: 16px; }
 .corr-item {
   padding: 14px 16px; border-radius: var(--r); box-shadow: var(--relieve);
   font-size: 15px; background: var(--lienzo);
@@ -537,7 +545,7 @@ h2 { font-weight: 900; font-size: 19px; margin: 28px 0 12px; }
 
 /* ---- charla ---- */
 .charla { display: flex; flex-direction: column; min-height: calc(100vh - 300px); }
-.charla-msgs { flex: 1; display: grid; gap: 12px; align-content: start; margin-bottom: 16px; }
+.charla-msgs { flex: 1; display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; align-content: start; margin-bottom: 16px; }
 .msg {
   max-width: 84%; padding: 12px 16px; border-radius: 17px 17px 17px 6px;
   background: var(--lienzo); box-shadow: var(--relieve);
@@ -657,7 +665,7 @@ h2 { font-weight: 900; font-size: 19px; margin: 28px 0 12px; }
 .celebra-stats { display: flex; gap: 14px; justify-content: center; margin-top: 28px; }
 .celebra-stat {
   border-radius: var(--r); box-shadow: var(--hundido);
-  padding: 18px 26px; min-width: 140px;
+  padding: 18px 20px; min-width: 0; flex: 1;
   animation: vista-pop .4s var(--spring-fuerte) backwards .22s;
 }
 .celebra-stat:last-child { animation-delay: .32s; }
@@ -713,7 +721,7 @@ h2 { font-weight: 900; font-size: 19px; margin: 28px 0 12px; }
 .quiz-check svg { width: 12px; height: 12px; stroke: currentColor; }
 .quiz-carta.elegida .quiz-check { opacity: 1; transform: none; }
 
-.metas { display: grid; gap: 14px; }
+.metas { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
 .meta-fila {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   text-align: left; padding: 17px 18px; border-radius: var(--r);
@@ -730,11 +738,18 @@ h2 { font-weight: 900; font-size: 19px; margin: 28px 0 12px; }
 
 @media (max-width: 560px) {
   .marca-texto { display: none; }
+  .meta-dia { gap: 14px; padding: 16px; }
+  .anillo-meta { width: 80px; height: 80px; }
+  .anillo-centro { inset: 10px; font-size: 15px; }
+  .dias-semana { gap: 5px; }
+  .dia { width: 23px; height: 23px; font-size: 10px; }
   .tabs button { padding: 10px 13px; font-size: 12.5px; }
   .tarjetas-stats { grid-template-columns: repeat(3, 1fr); gap: 10px; }
   .stat { padding: 13px 12px; }
   .stat-num { font-size: 22px; }
-  .celebra-stat { min-width: 0; flex: 1; padding: 16px 14px; }
+  .celebra-stat { padding: 15px 8px; }
+  .celebra-stat .etiqueta { font-size: 9.5px; letter-spacing: .06em; }
+  .celebra-stats { gap: 9px; }
   .msg { max-width: 90%; }
   .meta-dia { flex-direction: column; text-align: center; }
   .dias-semana { justify-content: center; }

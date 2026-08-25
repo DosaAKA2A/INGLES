@@ -15,7 +15,7 @@ CURSO.push({
     { en: 'good evening', es: 'buenas noches (al llegar)', ej: 'Good evening!' },      // 4
     { en: 'good night', es: 'buenas noches (al irse a dormir)', ej: 'Good night!' },   // 5
     { en: 'goodbye', es: 'adiós', ej: 'Goodbye, Ana!' },                               // 6
-    { en: 'bye', es: 'chau (informal)', ej: 'Bye, Tom!' },                             // 7
+    { en: 'bye', es: 'adiós (informal)', ej: 'Bye, Tom!' },                             // 7
     { en: 'see you later', es: 'nos vemos luego', ej: 'See you later!' },              // 8
     { en: 'please', es: 'por favor', ej: 'Coffee, please.' },                          // 9
     { en: 'thank you', es: 'gracias', ej: 'Thank you very much.' },                    // 10
@@ -156,7 +156,7 @@ CURSO.push({
           { q: 'A', en: 'My name is Ana. And you?', es: 'Me llamo Ana. ¿Y tú?' },
           { q: 'B', en: 'I am Tom. Nice to meet you, Ana!', es: 'Soy Tom. ¡Mucho gusto, Ana!' },
           { q: 'A', en: 'Nice to meet you, Tom!', es: '¡Mucho gusto, Tom!' },
-          { q: 'B', en: 'See you later, Ana. Bye!', es: 'Nos vemos luego, Ana. ¡Chau!' },
+          { q: 'B', en: 'See you later, Ana. Bye!', es: 'Nos vemos luego, Ana. ¡Adiós!' },
           { q: 'A', en: 'Goodbye, Tom!', es: '¡Adiós, Tom!' }
         ],
         preguntas: [
