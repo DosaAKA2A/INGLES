@@ -317,7 +317,7 @@ export default {
             method: 'POST',
             headers: { Authorization: 'Bearer ' + env.GROQ_API_KEY, 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              model: 'canopylabs/orpheus-v1-english', voice: 'tara',
+              model: 'canopylabs/orpheus-v1-english', voice: 'autumn',
               input: recorte, response_format: 'wav'
             })
           });
