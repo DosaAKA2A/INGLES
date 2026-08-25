@@ -62,7 +62,7 @@ function vUnidadNueva(unidad) {
           : (hecha ? `<span class="nodo-sello afinar">${ICO.refresco}</span>`
           : (abierta ? '' : `<span class="nodo-sello candado">${ICO.candado}</span>`))}
       </span>
-      <span class="nodo-info"><span class="nodo-titulo">${esc(l.titulo)}</span><span class="nodo-sub">${esc(sub)}</span></span>
+      <span class="nodo-info"><span class="nodo-titulo">${esc(l.titulo)}</span><span class="nodo-sub">${esc(terminos(sub))}</span></span>
     </button>`;
   });
 
@@ -70,7 +70,7 @@ function vUnidadNueva(unidad) {
     <button class="volver" id="volver">${ICO.atras} Todas las unidades</button>
     <span class="etiqueta">Unidad ${String(CURSO.findIndex((x) => x.id === unidad.id) + 1).padStart(2, '0')} &middot; ${unidad.nivel}</span>
     <h1>${esc(unidad.titulo)}</h1>
-    <p class="entradilla">${esc(unidad.descripcion)}</p>
+    <p class="entradilla">${esc(terminos(unidad.descripcion))}</p>
     <div class="camino">
       ${filas}
       <button class="nodo ${d.examen >= NOTA_EXAMEN ? 'hecho' : (todasHechas ? 'actual' : '')}" data-accion="examen" ${todasHechas ? '' : 'disabled'}>
@@ -140,7 +140,7 @@ function vEscena(unidad, idx) {
     <button class="volver" id="salir">${ICO.atras} ${esc(unidad.titulo)}</button>
     <span class="etiqueta">${esc(l.titulo)}</span>
     <h1>${esc(e.titulo || 'La escena')}</h1>
-    <p class="entradilla">${esc(e.lugar || '')}</p>
+    <p class="entradilla">${esc(terminos(e.lugar || ''))}</p>
     <p class="gris chica" style="margin-top:6px">Primero escucha: no hace falta entenderlo todo. Toca un globo para repetirlo. Lo nuevo lo estudiamos justo después.</p>
     <div class="acciones" style="margin:14px 0 16px">
       <button class="btn secundario" id="reproducir">${ICO.altavoz} Escuchar la escena</button>
@@ -220,8 +220,8 @@ function vTarjetas(unidad, idx, nuevas, pos) {
       ${archivoImagen(v.en) ? `<img class="carta-imagen" src="img/${archivoImagen(v.en)}" alt="">` : ''}
       <p class="carta-en">${esc(mayus(v.en))} ${botonAudio(v.en)}</p>
       <p class="carta-es">${esc(mayus(v.es))}</p>
-      ${v.uso ? `<p class="carta-uso">${conNombre(v.uso)}</p>` : ''}
-      ${v.nota ? `<p class="carta-nota">${conNombre(v.nota)}</p>` : ''}
+      ${v.uso ? `<p class="carta-uso">${terminos(conNombre(v.uso))}</p>` : ''}
+      ${v.nota ? `<p class="carta-nota">${terminos(conNombre(v.nota))}</p>` : ''}
       ${cambioDe(v)}
     </div>
     <div class="acciones">

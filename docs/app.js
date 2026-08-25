@@ -422,7 +422,7 @@ function vInicio() {
       <span class="unidad-num">${hecha ? ICO.check : String(idx + 1).padStart(2, '0')}</span>
       <span class="unidad-info">
         <span class="unidad-titulo">${esc(unidad.titulo)}</span>
-        <span class="unidad-sub">${esc(unidad.descripcion)}</span>
+        <span class="unidad-sub">${esc(terminos(unidad.descripcion))}</span>
       </span>
       <span class="unidad-cola">
         ${abierta ? (pct > 0 && pct < 100 ? anilloSVG(pct) : '') : ICO.candado.replace('<svg', '<svg class="candado"')}
@@ -458,7 +458,7 @@ function vUnidad(uid) {
   vista().innerHTML = `
     <button class="volver" id="volver">${ICO.atras} Todas las unidades</button>
     <h1>${esc(unidad.titulo)}</h1>
-    <p class="gris">${esc(unidad.descripcion)}</p>
+    <p class="gris">${esc(terminos(unidad.descripcion))}</p>
     <div class="bloques">
       ${bloque(ICO.libro, 'Vocabulario', unidad.vocab.length + ' palabras con audio', d.lec.vocab ? `<span class="bloque-extra bien">${ICO.check}</span>` : '', d.lec.vocab ? 'hecho' : '', 'vocab')}
       ${bloque(ICO.regla, 'Gramática', 'La explicación, con ejemplos para escuchar', d.lec.gram ? `<span class="bloque-extra bien">${ICO.check}</span>` : '', d.lec.gram ? 'hecho' : '', 'gram')}
@@ -612,7 +612,7 @@ function vEnsayo(unidad) {
     <button class="volver" id="volver">${ICO.atras} ${esc(unidad.titulo)}</button>
     <h1>Ensayo</h1>
     <div class="ficha">
-      <p><b>Consigna:</b> ${esc(e.consigna)}</p>
+      <p><b>Consigna:</b> ${esc(terminos(e.consigna))}</p>
       <p class="gris chica" style="margin-top:6px">Mínimo ${e.min} palabras, en inglés. La IA lo corrige, lo puntúa y te da la versión mejorada.</p>
     </div>
     <textarea class="ensayo-area" id="texto" placeholder="Write here, in English..." spellcheck="false"></textarea>
@@ -820,11 +820,11 @@ function corredor({ titulo, ejercicios, repetirFallos, alAcierto, alFallo, alTer
     };
 
     if (tipo === 'opcion' || tipo === 'huecos') {
-      const enun = tipo === 'huecos' ? esc(ej.antes) + ' ____ ' + esc(ej.despues || '') : esc(ej.q);
+      const enun = tipo === 'huecos' ? esc(ej.antes) + ' ____ ' + esc(ej.despues || '') : esc(terminos(ej.q));
       cuerpo = `<p class="consigna">${consignas[tipo]}</p>
         ${ej.audio ? ilustracionGrande(ej.audio) : ''}
         <p class="enunciado">${ej.audio ? botonAudio(ej.audio) : ''}${enun}</p>
-        <div class="opciones">${ej.opciones.map((o, i) => `<button class="opcion" data-i="${i}">${esc(tipo === 'huecos' ? o : mayus(o))}</button>`).join('')}</div>`;
+        <div class="opciones">${ej.opciones.map((o, i) => `<button class="opcion" data-i="${i}">${esc(tipo === 'huecos' || ej.literal ? o : mayus(terminos(o)))}</button>`).join('')}</div>`;
     } else if (tipo === 'traduce') {
       cuerpo = `<p class="consigna">${consignas.traduce}</p>
         ${ilustracionGrande(ej.en[0])}
@@ -1007,7 +1007,7 @@ function corredor({ titulo, ejercicios, repetirFallos, alAcierto, alFallo, alTer
         <div class="veredicto-titulo">${ok ? alAzar(ANIMOS_ACIERTO) : alAzar(ANIMOS_FALLO)}</div>
         ${detalle.nota ? `<div class="veredicto-detalle">${esc(detalle.nota)}</div>` : ''}
         ${(!ok || detalle.di) ? `<div class="veredicto-detalle">${ok ? '' : '<span class="vd-resp">La correcta era:</span> <b>' + esc(detalle.correcta) + '</b>'}${detalle.di ? ' ' + botonAudio(detalle.di) : ''}</div>` : ''}
-        ${detalle.por ? `<div class="veredicto-por">${conNombre(detalle.por)}</div>` : ''}
+        ${detalle.por ? `<div class="veredicto-por">${terminos(conNombre(detalle.por))}</div>` : ''}
         ${detalle.pista ? `<div class="veredicto-pista">${esc(detalle.pista)}</div>` : ''}
       </div>
       <div class="veredicto-acciones">

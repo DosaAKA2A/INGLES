@@ -104,7 +104,7 @@ CURSO.push({
     { tipo: 'opcion', q: 'Señalas un auto al otro lado de la calle:', opciones: ['this car', 'these car', 'that car'], r: 2, di: 'that car' },
     { tipo: 'traduce', es: 'una casa grande', en: ['a big house'], vocabIdx: 11 },
     { tipo: 'traduce', es: 'dos vasos', en: ['two glasses'], vocabIdx: 19 },
-    { tipo: 'traduce', es: '¿Qué es esto?', en: ['what is this'], vocabIdx: 26 },
+    { tipo: 'traduce', es: '¿Qué es esto?', en: ['what is this', "what's this"], vocabIdx: 26 },
     { tipo: 'escucha', en: 'These are my keys.' },
     { tipo: 'escucha', en: 'That is a small window.' },
     { tipo: 'ordena', es: 'Esta es una silla nueva.', en: 'This is a new chair.', extra: ['an'] },

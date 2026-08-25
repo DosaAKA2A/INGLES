@@ -19,16 +19,29 @@ const CURSO = vm.runInContext('CURSO', ctx);
 const a = new Set(), b = new Set();
 // {TU} se pregraba con un nombre neutro; con el nombre real de la persona la
 // frase la dice la voz de la nube.
+const NEUTRO = 'Alex';
+
+// Una frase con {TU} necesita DOS clips: el del nombre neutro (por si el
+// nombre va dentro de la frase) y el de la frase sin el vocativo (que es lo
+// que se oye cuando no hay nube). Misma regla que api.alternoDe en voz.js.
 const mete = (t, voz) => {
-  t = String(t || '').replace(/\{TU\}/g, 'Alex').trim();
-  if (t) (voz === 'b' ? b : a).add(t);
+  const crudo = String(t || '').trim();
+  if (!crudo) return;
+  const conNeutro = crudo.replace(/\{TU\}/g, NEUTRO).trim();
+  (voz === 'b' ? b : a).add(conNeutro);
+  if (crudo.includes('{TU}')) {
+    const sinVocativo = crudo.replace(/,\s*\{TU\}(?=\s*[!?.,]|\s*$)/g, '').trim();
+    if (sinVocativo !== crudo) (voz === 'b' ? b : a).add(sinVocativo);
+  }
 };
 
 const deEjercicio = (ej) => {
   if (ej.tipo === 'escucha' || ej.tipo === 'habla' || ej.tipo === 'ordena') mete(ej.en);
   if (ej.tipo === 'traduce') mete(ej.en[0]);
   if (ej.tipo === 'opcion') { mete(ej.audio); mete(ej.di); }
-  if (ej.tipo === 'huecos') mete(ej.di || (ej.antes + ' ' + ej.opciones[ej.r] + ' ' + (ej.despues || '')).trim());
+  // El veredicto de un hueco dice SOLO la palabra correcta (el enunciado suele
+  // llevar contexto en espanol). Se pregraban las dos por si acaso.
+  if (ej.tipo === 'huecos') { mete(ej.di || ej.opciones[ej.r]); mete(ej.opciones[ej.r]); }
   if (ej.tipo === 'parejas') ej.pares.forEach((p) => mete(p[0]));
 };
 

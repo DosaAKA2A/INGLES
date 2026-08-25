@@ -178,6 +178,22 @@ const Voz = (() => {
 
   api.nube = null; // app.js lo define cuando hay conexión
 
+  // El nombre con el que se pregraban las frases que llevan {TU}.
+  const NOMBRE_PREGRABADO = 'Alex';
+
+  // La frase que se dice cuando no hay clip con el nombre REAL de la persona.
+  // Vocativo -> se quita ("Hello, Eduardo!" -> "Hello!").
+  // El nombre dentro de la frase no se puede quitar sin romperla ("My name is
+  // Eduardo.") -> se usa el clip del nombre neutro.
+  api.alternoDe = (texto) => {
+    const n = (typeof tuNombre === 'function') ? tuNombre() : '';
+    if (!n || !texto.includes(n)) return null;
+    const esc = n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const sinVocativo = texto.replace(new RegExp(',\\s*' + esc + '(?=\\s*[!?.,]|\\s*$)', 'g'), '');
+    if (sinVocativo !== texto) return sinVocativo.trim();
+    return texto.split(n).join(NOMBRE_PREGRABADO);
+  };
+
   api.di = (texto, opciones = {}) => {
     texto = String(texto).trim();
     // por si algun sitio manda el marcador sin resolver
@@ -188,10 +204,24 @@ const Voz = (() => {
     const archivo = !opciones.dinamico && (typeof AUDIO_MAPA !== 'undefined')
       && (AUDIO_MAPA[clave] || AUDIO_MAPA['a|' + texto] || porMinusculas(clave) || porMinusculas('a|' + texto));
     if (archivo) { suenaMP3(archivo, opciones); return; }
+
+    // Sin clip exacto: la nube lo dice tal cual (con el nombre de verdad); si
+    // no hay nube, se cae a la alternativa pregrabada antes que al
+    // sintetizador, que en muchas maquinas ni siquiera habla ingles.
+    const alterno = opciones.alterno || api.alternoDe(texto);
+    const suplente = alterno && (typeof AUDIO_MAPA !== 'undefined')
+      && (AUDIO_MAPA[(opciones.voz === 'b' ? 'b|' : 'a|') + alterno] || AUDIO_MAPA['a|' + alterno]
+        || porMinusculas('a|' + alterno));
+
     if (api.nube) {
-      suenaNube(texto, opciones).then((sono) => { if (!sono) suenaSintetizador(texto, opciones); });
+      suenaNube(texto, opciones).then((sono) => {
+        if (sono) return;
+        if (suplente) suenaMP3(suplente, opciones);
+        else suenaSintetizador(texto, opciones);
+      });
       return;
     }
+    if (suplente) { suenaMP3(suplente, opciones); return; }
     suenaSintetizador(texto, opciones);
   };
 

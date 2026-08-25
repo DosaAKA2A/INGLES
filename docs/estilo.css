@@ -318,12 +318,18 @@ h2 { font-weight: 900; font-size: 19px; margin: 28px 0 12px; }
 .vocab-ej { display: block; font-size: 12.5px; color: var(--tinta-3); font-style: italic; margin-top: 2px; }
 
 .btn-audio {
-  flex: none; display: grid; place-items: center;
+  /* inline-grid + middle: se centra contra el texto en cualquier tamano de
+     letra. Con `grid` a secas y un vertical-align en pixeles caia siempre. */
+  flex: none; display: inline-grid; place-items: center; vertical-align: middle;
   width: 36px; height: 36px; border-radius: 50%;
   box-shadow: var(--relieve); color: var(--a-medio);
   transition: box-shadow var(--dur) ease, transform var(--dur) var(--spring);
 }
 .btn-audio svg { width: 15px; height: 15px; stroke: currentColor; }
+/* Junto a texto en linea: subida optica. `middle` alinea con la altura de la
+   equis; el ojo alinea con la de las mayusculas, mas alta. */
+.enunciado .btn-audio, .hablar-frase .btn-audio,
+.veredicto-detalle .btn-audio, .cambio-globo .btn-audio { position: relative; top: -.11em; }
 .btn-audio:hover { transform: translateY(-2px); }
 .btn-audio:active, .btn-audio.sonando { box-shadow: var(--hundido); transform: scale(.94); }
 .btn-audio.sonando { color: var(--a-oscuro); }
@@ -382,7 +388,7 @@ h2 { font-weight: 900; font-size: 19px; margin: 28px 0 12px; }
   color: var(--tinta-3); margin-bottom: 12px;
 }
 .enunciado { font-weight: 900; font-size: clamp(21px, 4vw, 26px); line-height: 1.22; margin-bottom: 24px; }
-.enunciado .btn-audio { display: inline-grid; vertical-align: -11px; margin-right: 10px; width: 40px; height: 40px; }
+.enunciado .btn-audio { margin-right: 12px; width: 40px; height: 40px; }
 .enunciado .btn-audio svg { width: 17px; height: 17px; }
 
 .ej-imagen {
@@ -443,6 +449,7 @@ h2 { font-weight: 900; font-size: 19px; margin: 28px 0 12px; }
 .pareja.no { animation: sacudida .3s; color: var(--mal); }
 
 .hablar-frase { font-weight: 900; font-size: clamp(22px, 4.2vw, 27px); margin-bottom: 4px; }
+.hablar-frase .btn-audio { width: 38px; height: 38px; margin-right: 10px; }
 .hablar-fon { color: var(--tinta-2); margin-bottom: 20px; }
 .btn-mic {
   display: flex; align-items: center; justify-content: center; gap: 10px;
@@ -499,7 +506,7 @@ h2 { font-weight: 900; font-size: 19px; margin: 28px 0 12px; }
   margin-top: 8px; padding: 8px 12px; border-radius: 12px;
   box-shadow: var(--hundido-suave); font-size: 13px; color: var(--tinta-2);
 }
-.veredicto-detalle .btn-audio { display: inline-grid; vertical-align: -9px; width: 28px; height: 28px; margin-left: 4px; }
+.veredicto-detalle .btn-audio { width: 28px; height: 28px; margin-left: 8px; }
 .veredicto-detalle .btn-audio svg { width: 12px; height: 12px; }
 .vd-pts {
   flex: none; padding: 7px 12px; border-radius: var(--r-chip);
@@ -971,9 +978,10 @@ body.con-veredicto .pie-accion { opacity: 0; pointer-events: none; transform: tr
   background: var(--lienzo); box-shadow: var(--relieve);
   font-weight: 900; font-size: 14px; color: var(--tinta-2);
 }
-/* Los avatares son bustos verticales (162x224): recortados en circulo hay que
-   anclarlos ARRIBA o se ve el pecho en vez de la cara. */
-.cara img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 0; }
+/* Los avatares son bustos verticales (162x224). Con `cover` el circulo hacia
+   un primerisimo plano que cortaba el pelo: va `contain`, con el busto entero
+   apoyado en el borde de abajo. Medido comparando las tres opciones. */
+.cara img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: 50% 100%; }
 .cara img + b { display: none; }              /* con foto, fuera la inicial */
 .cara-B { color: var(--a-texto); }
 .cara-tu { box-shadow: var(--hundido-suave); color: var(--tinta-3); }
@@ -995,14 +1003,12 @@ body.con-veredicto .pie-accion { opacity: 0; pointer-events: none; transform: tr
   font-weight: 700; font-size: 15px; color: var(--tinta);
 }
 .cambio-linea.tu .cambio-globo { text-align: right; }
-.cambio-globo .btn-audio {
-  display: inline-grid; vertical-align: -8px; width: 26px; height: 26px; margin-left: 4px;
-}
+.cambio-globo .btn-audio { width: 26px; height: 26px; margin-left: 8px; }
 .cambio-globo .btn-audio svg { width: 11px; height: 11px; }
 
 /* En los dialogos la cara ocupa el sitio de la vieja letra .linea-quien */
 .linea .cara { width: 34px; height: 34px; font-size: 13px; }
 .linea.b .cara { box-shadow: var(--relieve); }
 
-.cara { background: var(--oscura); }        /* fondo tras el avatar recortado */
+.cara { background: var(--lienzo); }        /* superficie del color del lienzo, como manda el relieve */
 .cara-tu { background: var(--lienzo); }

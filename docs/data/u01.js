@@ -24,7 +24,7 @@ CURSO.push({
     { en: 'thanks', es: 'gracias (informal)', uso: 'La forma corta, entre amigos.', nota: "Es thank you en corto. Ojo: lleva <b>s</b> final aunque sea una sola cosa la que agradeces.", cambio: { di: "Coffee, {TU}!", tu: "Thanks, Aria!" } },                                        // 11
     { en: "you're welcome", es: 'de nada', uso: 'La respuesta fija cuando te dan las gracias.', nota: "Forma corta de <b>you are welcome</b>. En inglés, <b>you are</b> casi siempre se acorta a <b>you're</b> al hablar.", cambio: { di: "Thank you, {TU}!", tu: "You're welcome, Aria!" } }, // 12
     { en: 'sorry', es: 'perdón, lo siento', uso: 'Cuando YA hiciste algo: chocar, pisar, equivocarte.', nota: "Sirve para pedir perdón y también para compadecerse. Lo que NO hace es pedir permiso: eso es excuse me.", cambio: { di: "Oh! Sorry, {TU}!", tu: "Sorry!" } },                          // 13
-    { en: 'excuse me', es: 'disculpe', uso: 'ANTES de molestar: llamar la atención o pedir paso. Esa es la diferencia con sorry.', nota: "Es la fórmula para interrumpir: llamar a alguien, pedir paso o preguntar algo. Va SIEMPRE antes.", cambio: { di: "Excuse me, {TU}!", tu: "Yes?" } }, // 14
+    { en: 'excuse me', es: 'disculpe', uso: 'Para dirigirte a alguien: llamar su atención o pedir paso. Se dice ANTES, y esa es la diferencia con sorry.', nota: "Es la fórmula de cortesía para dirigirte a alguien que no conoces: pedir paso, preguntar algo o llamar al camarero. Pide permiso; no pide perdón.", cambio: { di: "Excuse me, {TU}!", tu: "Yes?" } }, // 14
     { en: 'name', es: 'nombre', uso: 'La palabra clave para presentarte: my name is...', nota: "<b>Name</b> es el sustantivo. La frase completa lleva el verbo: my name <b>is</b>...", cambio: { di: "My name is Aria. And you, {TU}?", tu: "My name is {TU}." } },                               // 15
     { en: 'friend', es: 'amigo, amiga', uso: 'Vale para amigo y amiga: en inglés no cambia.', nota: "Una sola palabra para amigo y amiga: el inglés casi no marca el género en los sustantivos.", cambio: { di: "You are my friend, {TU}!", tu: "You are my friend, Aria!" } },                        // 16
     { en: 'teacher', es: 'profesor, profesora', uso: 'También vale para los dos: el inglés casi no marca el género.', nota: "Sale de <b>teach</b> (enseñar) + <b>-er</b> (quien hace algo). Ese <b>-er</b> forma muchísimos oficios.", cambio: { di: "I am your teacher, {TU}.", tu: "You are my teacher, Aria!" } }, // 17
@@ -91,7 +91,7 @@ CURSO.push({
       sub: 'Por favor, gracias, perdón: lo que se usa a cada rato',
       escena: {
         titulo: 'En la cafetería',
-        lugar: 'Aria pide un café. Fíjate qué dice antes de molestar, al pedir y al agradecer.',
+        lugar: 'Aria pide un café. Fíjate cómo llama la atención del camarero, cómo pide y cómo agradece.',
         lineas: [
           { q: 'A', en: 'Excuse me... coffee, please.', es: 'Disculpe... un café, por favor.' },
           { q: 'B', en: 'Coffee!', es: '¡Un café!' },
@@ -106,8 +106,8 @@ CURSO.push({
       },
       nuevas: [6, 7, 8, 9, 10, 11, 12, 13, 14],
       entiende: [
-        { tipo: 'opcion', q: 'En la escena, ¿qué dice Aria ANTES de pedir el café?', opciones: ['Excuse me', 'Sorry', 'Goodbye'], r: 0, di: 'Excuse me', vocabIdx: 14,
-          por: '<b>Excuse me</b> va ANTES de molestar. <b>Sorry</b> va después, cuando ya pasó algo.' },
+        { tipo: 'opcion', q: 'En la escena, ¿qué dice Aria para llamar al camarero?', opciones: ['Excuse me', 'Sorry', 'Goodbye'], r: 0, di: 'Excuse me', vocabIdx: 14,
+          por: '<b>Excuse me</b> pide permiso, va ANTES. <b>Sorry</b> pide perdón, va DESPUÉS de que algo pase.' },
         { tipo: 'opcion', q: 'Aria da las gracias. ¿Qué responde el camarero?', opciones: ["You're welcome", 'Excuse me', 'Good night'], r: 0, di: "You're welcome", vocabIdx: 12,
           por: "A un <b>thank you</b> se responde <b>you're welcome</b>. Es un par fijo." },
         { tipo: 'opcion', q: 'Aria tropieza con alguien. ¿Qué dice?', opciones: ['Sorry', 'Please', 'Thanks'], r: 0, di: 'Sorry', vocabIdx: 13,
@@ -116,9 +116,9 @@ CURSO.push({
       practica: [
         { tipo: 'parejas', pares: [['goodbye', 'adiós'], ['please', 'por favor'], ['thank you', 'gracias'], ['sorry', 'perdón'], ['excuse me', 'disculpe']] },
         { tipo: 'opcion', q: 'Quieres pasar y hay gente en el camino. ¿Qué dices?', opciones: ['Excuse me', 'Sorry', 'See you later'], r: 0, di: 'Excuse me', vocabIdx: 14,
-          por: 'Todavía no molestaste a nadie: pides permiso con <b>excuse me</b>.' },
+          por: 'Aún no ha pasado nada: solo pides permiso, y eso es <b>excuse me</b>.' },
         { tipo: 'opcion', q: 'Pisaste a alguien sin querer. ¿Qué dices?', opciones: ['Sorry', 'Please', 'Bye'], r: 0, di: 'Sorry', vocabIdx: 13,
-          por: 'Ya pasó: <b>sorry</b>. Si fuera antes de molestar, sería excuse me.' },
+          por: 'Ya pasó algo, así que toca disculparse: <b>sorry</b>. Para pedir permiso antes sería excuse me.' },
         { tipo: 'huecos', antes: 'Pides un café: "Coffee,', despues: '!"', opciones: ['please', 'sorry', 'welcome'], r: 0,
           por: 'Sin <b>please</b>, "coffee" suena a orden. Con please, a petición.' },
         { tipo: 'escucha', en: 'See you later!' },
@@ -173,13 +173,15 @@ CURSO.push({
           por: '<b>You</b> va siempre con <b>are</b>. Am es de I.' },
         { tipo: 'huecos', antes: 'My name', despues: '{TU}.', opciones: ['is', 'am', 'are'], r: 0,
           por: 'Tu nombre es una cosa, no una persona: las cosas van con <b>is</b>.' },
-        { tipo: 'opcion', q: '¿Cuál está bien escrita?', opciones: ['I am Aria', 'i am Aria', 'i Am ana'], r: 0, di: 'I am Aria',
+        // `literal`: aquí la mayúscula ES la pregunta, así que las opciones se
+        // pintan tal cual. Sin esto, mayus() dejaba las tres iguales.
+        { tipo: 'opcion', literal: true, q: '¿Cuál está bien escrita?', opciones: ['I am Aria', 'i am Aria', 'i Am aria'], r: 0, di: 'I am Aria',
           por: '<b>I</b> (yo) lleva mayúscula SIEMPRE, esté donde esté en la frase.' },
         { tipo: 'escucha', en: 'You are my teacher.' }
       ],
       produce: [
         { tipo: 'ordena', es: 'Me llamo Aria.', en: 'My name is Aria.', extra: ['are'] },
-        { tipo: 'traduce', es: 'Yo soy {TU}.', en: ['i am dosa', "i'm dosa"],
+        { tipo: 'traduce', es: 'Yo soy {TU}.', en: ['i am {TU}', "i'm {TU}"],
           por: "Valen las dos: <b>I am</b> y su forma corta <b>I'm</b>." },
         { tipo: 'traduce', es: 'Tú eres mi amigo.', en: ['you are my friend', "you're my friend"], vocabIdx: 16 },
         { tipo: 'habla', en: 'My name is {TU}.', es: 'Me llamo {TU}.' }
@@ -295,7 +297,7 @@ CURSO.push({
     { tipo: 'opcion', q: 'Alguien te dice "Thank you!". ¿Qué respondes?', opciones: ["You're welcome", 'Please', 'Sorry'], r: 0, di: "You're welcome",
       por: "El par fijo: thank you -> <b>you're welcome</b>." },
     { tipo: 'opcion', q: 'Chocaste con alguien sin querer. ¿Qué dices?', opciones: ['Sorry', 'Excuse me', 'Bye'], r: 0, di: 'Sorry',
-      por: 'Ya pasó: <b>sorry</b>. Excuse me es para ANTES de molestar.' },
+      por: 'Ya pasó algo: <b>sorry</b>. Excuse me es para pedir permiso ANTES.' },
     { tipo: 'huecos', antes: 'I', despues: 'Andrew.', opciones: ['am', 'are'], r: 0,
       por: '<b>I</b> va siempre con <b>am</b>.' },
     { tipo: 'huecos', antes: 'You', despues: 'my teacher.', opciones: ['are', 'am'], r: 0,
