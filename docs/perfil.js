@@ -40,7 +40,7 @@ function vOnboarding(paso, borrador) {
         <div class="ej-cabecera" style="visibility:hidden"><span class="ej-contador">.</span></div>
         <div class="onb-paso"><div class="ej-barra"><i style="width:33%"></i></div></div>
         <div class="onb-centro">
-          <span class="onb-marca">EN</span>
+          <img class="onb-marca" src="logo.svg" alt="" width="475" height="532">
           <h1 class="centrado">Inglés desde cero</h1>
           <p class="entradilla centrado" style="margin:0 auto 34px">Práctico, funcional y a tu ritmo. Primero, lo primero:</p>
           <label class="etiqueta" for="onb-nombre">¿Cómo te llamas?</label>
