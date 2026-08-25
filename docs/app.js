@@ -97,6 +97,15 @@ async function bajaProgreso() {
 // Con pase, el texto dinámico (chat, ensayos) se dice con la voz neuronal del
 // worker; sin él (o sin clave de Groq), Voz cae sola al sintetizador.
 function conectaVozNube() {
+  Voz.oido = !token ? null : async (blob) => {
+    const r = await fetch(API + '/ia/oido', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + token, 'Content-Type': blob.type || 'audio/webm' },
+      body: blob
+    });
+    if (!r.ok) return null;
+    return (await r.json()).texto;
+  };
   Voz.nube = !token ? null : async (texto) => {
     const r = await fetch(API + '/ia/voz', {
       method: 'POST',
@@ -672,7 +681,7 @@ function corredor({ titulo, ejercicios, repetirFallos, alAcierto, alFallo, alTer
       cuerpo = `<p class="consigna">${consignas.habla}</p>
         <p class="hablar-frase">${botonAudio(ej.en)} ${esc(ej.en)}</p>
         <p class="hablar-fon gris">${esc(ej.es)}</p>
-        <button class="btn-mic" id="mic">${ICO.mic} Mantén y habla</button>
+        <button class="btn-mic" id="mic">${ICO.mic} Toca y habla</button>
         <div class="oido" id="oido"></div>
         <div class="acciones"><button class="btn secundario" id="saltar">No puedo hablar ahora</button></div>`;
     } else if (tipo === 'parejas') {
@@ -751,7 +760,7 @@ function corredor({ titulo, ejercicios, repetirFallos, alAcierto, alFallo, alTer
       btn.addEventListener('click', () => {
         if (micActivo) { try { micActivo.stop(); } catch (e) {} return; }
         btn.classList.add('grabando');
-        btn.innerHTML = ICO.mic + ' Escuchando... toca para parar';
+        btn.innerHTML = ICO.mic + ' Escuchando... para solo cuando termines de hablar';
         $('#oido').innerHTML = '';
         micActivo = Voz.escucha({
           alOir: (alternativas) => {
@@ -769,7 +778,7 @@ function corredor({ titulo, ejercicios, repetirFallos, alAcierto, alFallo, alTer
           alFin: () => {
             micActivo = null;
             btn.classList.remove('grabando');
-            btn.innerHTML = ICO.mic + ' Mantén y habla';
+            btn.innerHTML = ICO.mic + ' Toca y habla';
           }
         });
       });

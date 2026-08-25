@@ -171,9 +171,83 @@ const Voz = (() => {
     return Math.round((f[a.length][b.length] / a.length) * 100);
   };
 
+  // Oido titular: grabar el microfono y transcribir con Whisper via el worker
+  // (api.oido lo engancha app.js con el pase). El SpeechRecognition del
+  // navegador queda de reserva: depende del servicio de Google y en varios
+  // entornos no arranca ni avisa — "no me detecta el microfono".
+  api.oido = null;
+
+  function escuchaGrabando({ alOir, alError, alFin }) {
+    let rec = null, corriente = null, cancelado = false, ctx = null;
+    const trozos = [];
+
+    const termina = (oyoAlgo) => { if (alFin) alFin(oyoAlgo); };
+    const cierra = () => {
+      try { if (corriente) corriente.getTracks().forEach((t) => t.stop()); } catch (e) {}
+      try { if (ctx) ctx.close(); } catch (e) {}
+    };
+
+    navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
+      if (cancelado) { stream.getTracks().forEach((t) => t.stop()); return; }
+      corriente = stream;
+      const tipo = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus'
+        : (MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : '');
+      rec = new MediaRecorder(stream, tipo ? { mimeType: tipo } : undefined);
+      rec.ondataavailable = (e) => { if (e.data && e.data.size) trozos.push(e.data); };
+      rec.onstop = async () => {
+        cierra();
+        if (cancelado) { termina(false); return; }
+        const blob = new Blob(trozos, { type: rec.mimeType || 'audio/webm' });
+        if (blob.size < 2000) { alError('No se grabó nada. Habla más cerca del micrófono.'); termina(false); return; }
+        try {
+          const texto = await api.oido(blob);
+          if (texto) { alOir([texto]); termina(true); }
+          else { alError('No se pudo transcribir. Revisa la conexión e intenta de nuevo.'); termina(false); }
+        } catch (e) { alError('No se pudo transcribir: ' + e.message); termina(false); }
+      };
+      rec.start(250);
+
+      // corte automatico: 1,4 s de silencio despues de haber hablado, o 9 s en total
+      ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const fuente = ctx.createMediaStreamSource(stream);
+      const analizador = ctx.createAnalyser();
+      analizador.fftSize = 512;
+      fuente.connect(analizador);
+      const datos = new Uint8Array(analizador.fftSize);
+      let hablo = false, silencio = 0;
+      const arranque = Date.now();
+      const vigila = setInterval(() => {
+        if (!rec || rec.state !== 'recording') { clearInterval(vigila); return; }
+        analizador.getByteTimeDomainData(datos);
+        let s2 = 0;
+        for (let i = 0; i < datos.length; i++) { const v = (datos[i] - 128) / 128; s2 += v * v; }
+        const rms = Math.sqrt(s2 / datos.length);
+        if (rms > 0.02) { hablo = true; silencio = 0; } else if (hablo) { silencio += 120; }
+        if ((hablo && silencio >= 1400) || Date.now() - arranque > 9000) { clearInterval(vigila); rec.stop(); }
+      }, 120);
+    }).catch((e) => {
+      if (e && (e.name === 'NotAllowedError' || e.name === 'SecurityError')) {
+        alError('Sin permiso de micrófono. Dáselo en el candado de la barra de direcciones y recarga.');
+      } else if (e && e.name === 'NotFoundError') {
+        alError('El navegador no encuentra ningún micrófono conectado.');
+      } else {
+        alError('No se pudo abrir el micrófono: ' + ((e && e.name) || e));
+      }
+      termina(false);
+    });
+
+    return {
+      stop() { try { if (rec && rec.state === 'recording') rec.stop(); } catch (e) {} },
+      abort() { cancelado = true; try { if (rec && rec.state === 'recording') rec.stop(); } catch (e) {} cierra(); }
+    };
+  }
+
   api.escucha = ({ alOir, alError, alFin }) => {
+    if (api.oido && navigator.mediaDevices && window.MediaRecorder) {
+      return escuchaGrabando({ alOir, alError, alFin });
+    }
     const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!Rec) { alError('Este navegador no trae reconocimiento de voz. Usa Chrome.'); return null; }
+    if (!Rec) { alError('Este navegador no trae reconocimiento de voz. Conéctate con el pase (Ajustes) para usar el oído del curso.'); return null; }
     const rec = new Rec();
     rec.lang = 'en-US';
     rec.interimResults = false;

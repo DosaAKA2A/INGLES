@@ -366,6 +366,27 @@ export default {
         return json({ error: fallos.join(' | ') || 'motor desconocido' }, 502);
       }
 
+      // Oido: transcribe lo que hablo el estudiante (ejercicios de pronunciacion).
+      // El SpeechRecognition del navegador depende del servicio de Google y en
+      // varios entornos no arranca; Whisper via Groq funciona en todos.
+      if (url.pathname === '/ia/oido' && req.method === 'POST') {
+        if (!env.GROQ_API_KEY) return json({ error: 'sin clave de IA' }, 503);
+        const audio = await req.arrayBuffer();
+        if (!audio || audio.byteLength < 1000) return json({ error: 'sin audio' }, 400);
+        if (audio.byteLength > 2 * 1024 * 1024) return json({ error: 'audio muy largo' }, 413);
+        const fd = new FormData();
+        fd.append('file', new File([audio], 'voz.webm', { type: req.headers.get('Content-Type') || 'audio/webm' }));
+        fd.append('model', 'whisper-large-v3-turbo');
+        fd.append('language', 'en');
+        fd.append('temperature', '0');
+        const r = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
+          method: 'POST', headers: { Authorization: 'Bearer ' + env.GROQ_API_KEY }, body: fd
+        });
+        if (!r.ok) return json({ error: 'oido ' + r.status + ': ' + (await r.text()).slice(0, 160) }, 502);
+        const data = await r.json();
+        return json({ texto: String(data.text || '').trim() });
+      }
+
       return json({ error: 'no existe' }, 404);
     } catch (e) {
       return json({ error: String(e.message || e).slice(0, 300) }, 500);
