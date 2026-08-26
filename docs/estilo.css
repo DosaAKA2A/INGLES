@@ -887,12 +887,15 @@ body.con-veredicto .pie-accion { opacity: 0; pointer-events: none; transform: tr
 }
 /* El primero es el hueco donde vive el logo: tiene que ser bastante más
    grande que él para que se vea el borde alrededor. */
-/* Las proporciones son las de siempre (152/236/324/416/512 sobre 512), pero
-   ahora en fracciones de --anillo para que la cadena escale entera. */
-.intro-anillos span:nth-child(1) { width: calc(var(--anillo) * .297); height: calc(var(--anillo) * .297); animation-delay: .05s; }
-.intro-anillos span:nth-child(2) { width: calc(var(--anillo) * .461); height: calc(var(--anillo) * .461); animation-delay: .18s; }
-.intro-anillos span:nth-child(3) { width: calc(var(--anillo) * .633); height: calc(var(--anillo) * .633); animation-delay: .31s; }
-.intro-anillos span:nth-child(4) { width: calc(var(--anillo) * .8125); height: calc(var(--anillo) * .8125); animation-delay: .44s; }
+/* La cadena empezaba en .297 porque la marca anterior era un círculo y cabía
+   holgada. La V es apaisada: dentro de un círculo lo que cuenta no es su caja
+   sino la distancia del punto más lejano, que son los topes redondeados de
+   los brazos, y a .297 asomaban por los lados. El anillo interior sube a .40
+   y los pasos se reparten parejos hasta el mayor, que sigue siendo 1. */
+.intro-anillos span:nth-child(1) { width: calc(var(--anillo) * .40); height: calc(var(--anillo) * .40); animation-delay: .05s; }
+.intro-anillos span:nth-child(2) { width: calc(var(--anillo) * .544); height: calc(var(--anillo) * .544); animation-delay: .18s; }
+.intro-anillos span:nth-child(3) { width: calc(var(--anillo) * .693); height: calc(var(--anillo) * .693); animation-delay: .31s; }
+.intro-anillos span:nth-child(4) { width: calc(var(--anillo) * .846); height: calc(var(--anillo) * .846); animation-delay: .44s; }
 .intro-anillos span:nth-child(5) { width: var(--anillo); height: var(--anillo); animation-delay: .57s; }
 @keyframes anillo-sale {
   from { transform: scale(.4); opacity: 0; }
@@ -903,11 +906,12 @@ body.con-veredicto .pie-accion { opacity: 0; pointer-events: none; transform: tr
 .intro-logo {
   position: relative; display: block;
   /* Se mide por ANCHO, no por alto: el isotipo es apaisado y con una altura
-     fija se salía del anillo interior por los costados. El .30 deja su caja
-     justo del tamaño del anillo interior; a la proporción del círculo
-     anterior (.22) se leía flojo, porque la V es trazo y aire mientras que el
-     círculo era macizo: a igual caja, menos tinta. */
-  width: calc(var(--anillo) * .30); height: auto;
+     fija se salía del anillo interior por los costados.
+     El punto más lejano del centro está a .5394 del ancho (medido sobre el
+     path: los topes de los brazos, no las esquinas de la caja). Con el anillo
+     interior en .40, un ancho de .28 deja el logo dentro con .049 de --anillo
+     de aire alrededor, la misma holgura proporcional que tenía el círculo. */
+  width: calc(var(--anillo) * .28); height: auto;
   /* la sombra sigue el contorno de la forma, no una caja */
   filter: drop-shadow(.4rem .4rem .8rem var(--oscura)) drop-shadow(-.2rem -.2rem .6rem var(--luz));
   opacity: 0; transform: scale(.82);
