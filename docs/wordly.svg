@@ -7,7 +7,11 @@
       }
     </style>
   </defs>
-  <linearGradient id="wl-grad" x1="0" y1="0" x2="1" y2="1">
+  <!-- userSpaceOnUse y no el objectBoundingBox por defecto: cada letra es un
+       <path> propio, y por caja cada una recibia el barrido entero. Con las
+       coordenadas del lienzo (0,0 a 715.65,209.39) el degradado es uno solo y
+       cruza la palabra de la W a la y. -->
+  <linearGradient id="wl-grad" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="715.65" y2="209.39">
     <stop offset="0" stop-color="#1266cc"/>
     <stop offset=".5" stop-color="#21a3e8"/>
     <stop offset="1" stop-color="#3ad8f0"/>
