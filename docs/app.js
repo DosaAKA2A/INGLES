@@ -422,7 +422,7 @@ function vInicio() {
   }
   const faltan = Math.max(0, meta - minHoy);
   let html = `<span class="etiqueta">Nivel A0 &ndash; A1</span>
-    <h1>${P.perfil && P.perfil.nombre ? 'Hola, ' + esc(P.perfil.nombre) : 'Inglés desde cero'}</h1>
+    <h1>${P.perfil && P.perfil.nombre ? 'Hola, ' + esc(P.perfil.nombre) : 'Wordly'}</h1>
     <p class="entradilla">${P.racha.dias > 1 ? 'Sigue así: llevas ' + P.racha.dias + ' días seguidos.' : 'Doce unidades. Cada una se abre aprobando el examen de la anterior.'}</p>
     <svg width="0" height="0" style="position:absolute"><defs><linearGradient id="grad-anillo" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3ad8f0"/><stop offset="1" stop-color="#1266cc"/></linearGradient></defs></svg>
     <div class="meta-dia">
