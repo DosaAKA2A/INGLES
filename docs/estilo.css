@@ -866,6 +866,14 @@ body.con-veredicto .pie-accion { opacity: 0; pointer-events: none; transform: tr
   display: grid; place-items: center;
   background: var(--lienzo);
   transition: opacity .65s ease, transform .65s cubic-bezier(.16, 1, .3, 1);
+
+  /* Diámetro del anillo MAYOR. Estaba en 512px fijos y se salía por los lados
+     en cuanto la ventana bajaba de ahí (a 390px el anillo grande medía 404 y
+     quedaba cortado en los dos bordes). Ahora se ata al lado corto de la
+     pantalla: los 84vw dejan aire a los costados y los 58vh evitan que en
+     apaisado el anillo se coma el nombre de abajo. Todo lo demás sale de esta
+     medida, así que la cadena entera escala junta. */
+  --anillo: min(512px, 84vw, 58vh);
 }
 .intro.fuera { opacity: 0; transform: scale(1.03); pointer-events: none; }
 
@@ -879,11 +887,13 @@ body.con-veredicto .pie-accion { opacity: 0; pointer-events: none; transform: tr
 }
 /* El primero es el hueco donde vive el logo: tiene que ser bastante más
    grande que él para que se vea el borde alrededor. */
-.intro-anillos span:nth-child(1) { width: 152px; height: 152px; animation-delay: .05s; }
-.intro-anillos span:nth-child(2) { width: 236px; height: 236px; animation-delay: .18s; }
-.intro-anillos span:nth-child(3) { width: 324px; height: 324px; animation-delay: .31s; }
-.intro-anillos span:nth-child(4) { width: 416px; height: 416px; animation-delay: .44s; }
-.intro-anillos span:nth-child(5) { width: 512px; height: 512px; animation-delay: .57s; }
+/* Las proporciones son las de siempre (152/236/324/416/512 sobre 512), pero
+   ahora en fracciones de --anillo para que la cadena escale entera. */
+.intro-anillos span:nth-child(1) { width: calc(var(--anillo) * .297); height: calc(var(--anillo) * .297); animation-delay: .05s; }
+.intro-anillos span:nth-child(2) { width: calc(var(--anillo) * .461); height: calc(var(--anillo) * .461); animation-delay: .18s; }
+.intro-anillos span:nth-child(3) { width: calc(var(--anillo) * .633); height: calc(var(--anillo) * .633); animation-delay: .31s; }
+.intro-anillos span:nth-child(4) { width: calc(var(--anillo) * .8125); height: calc(var(--anillo) * .8125); animation-delay: .44s; }
+.intro-anillos span:nth-child(5) { width: var(--anillo); height: var(--anillo); animation-delay: .57s; }
 @keyframes anillo-sale {
   from { transform: scale(.4); opacity: 0; }
   45%  { opacity: 1; }
@@ -892,7 +902,12 @@ body.con-veredicto .pie-accion { opacity: 0; pointer-events: none; transform: tr
 
 .intro-logo {
   position: relative; display: block;
-  height: 112px; width: auto;
+  /* Se mide por ANCHO, no por alto: el isotipo es apaisado y con una altura
+     fija se salía del anillo interior por los costados. El .30 deja su caja
+     justo del tamaño del anillo interior; a la proporción del círculo
+     anterior (.22) se leía flojo, porque la V es trazo y aire mientras que el
+     círculo era macizo: a igual caja, menos tinta. */
+  width: calc(var(--anillo) * .30); height: auto;
   /* la sombra sigue el contorno de la forma, no una caja */
   filter: drop-shadow(.4rem .4rem .8rem var(--oscura)) drop-shadow(-.2rem -.2rem .6rem var(--luz));
   opacity: 0; transform: scale(.82);
@@ -915,14 +930,7 @@ body.con-veredicto .pie-accion { opacity: 0; pointer-events: none; transform: tr
 /* En pantalla ancha los anillos bajan más: el nombre se aparta para no rozarlos. */
 @media (min-width: 700px) { .intro-nombre { bottom: 10%; } }
 
-@media (max-width: 420px) {
-  .intro-logo { height: 96px; width: auto; }
-  .intro-anillos span:nth-child(1) { width: 132px; height: 132px; }
-  .intro-anillos span:nth-child(2) { width: 200px; height: 200px; }
-  .intro-anillos span:nth-child(3) { width: 268px; height: 268px; }
-  .intro-anillos span:nth-child(4) { width: 336px; height: 336px; }
-  .intro-anillos span:nth-child(5) { width: 404px; height: 404px; }
-}
+/* Ya no hace falta el salto a 420px: --anillo lo resuelve en cualquier ancho. */
 
 /* Quien pide menos movimiento ve el logo directamente, sin cadena de anillos. */
 @media (prefers-reduced-motion: reduce) {
