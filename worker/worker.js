@@ -29,6 +29,10 @@
      npx wrangler secret put VOZ_CLAVE         (relevo de voz en la VM de GCP)
      npx wrangler secret put MIGRA_CORREO      (opcional: a que cuenta va el
                                                 progreso viejo que quedo en KV)
+
+   Variable (en wrangler.toml, no es secreto):
+     ORIGENES  los origenes que pueden llamar al worker, separados por comas.
+               Cuando el curso tenga dominio propio se agrega ahi y ya.
 */
 
 import { ahora, nuevoId, normalizaCorreo, correoValido, limpiaNombre } from './util.js';
@@ -42,16 +46,22 @@ import * as admin from './admin.js';
 
 // El comodin en Access-Control-Allow-Origin ya no vale: con cuentas de por
 // medio, cualquier pagina podria llamar al worker con el token de la victima.
-const ORIGENES = [
+//
+// La lista sale de la variable ORIGENES (separados por comas) para que el dia
+// que el curso tenga dominio propio sea un cambio de configuracion y no de
+// codigo. El primero de la lista es el que se responde cuando el Origin no
+// esta permitido: da igual cual sea, el navegador lo rechaza igual.
+const ORIGENES_POR_DEFECTO = [
   'https://dosaaka2a.github.io',
-  'https://iris.it.com',
   'http://localhost:8080',
   'http://127.0.0.1:8080'
 ];
 
-function cabecerasCors(req) {
+function cabecerasCors(req, env) {
+  const lista = (env.ORIGENES || '').split(',').map((s) => s.trim()).filter(Boolean);
+  const origenes = lista.length ? lista : ORIGENES_POR_DEFECTO;
   const origen = req.headers.get('Origin') || '';
-  const permitido = ORIGENES.includes(origen) ? origen : ORIGENES[0];
+  const permitido = origenes.includes(origen) ? origen : origenes[0];
   return {
     'Access-Control-Allow-Origin': permitido,
     'Access-Control-Allow-Methods': 'GET,PUT,POST,OPTIONS',
@@ -74,7 +84,7 @@ function cookieSesion(token) {
 export default {
   async fetch(req, env) {
     const url = new URL(req.url);
-    const cors = cabecerasCors(req);
+    const cors = cabecerasCors(req, env);
     if (req.method === 'OPTIONS') return new Response(null, { headers: cors });
 
     const json = (obj, estado = 200, extra = {}) => new Response(JSON.stringify(obj), {

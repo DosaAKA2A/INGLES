@@ -2,6 +2,12 @@ name = "ingles"
 main = "worker.js"
 compatibility_date = "2026-08-01"
 
+# Quien puede llamar al worker. El curso NO va colgado de iris.it.com: cuando
+# tenga dominio propio se agrega aca (separados por comas) y se despliega.
+# Mientras tanto vive en GitHub Pages.
+[vars]
+ORIGENES = "https://dosaaka2a.github.io,http://localhost:8080,http://127.0.0.1:8080"
+
 # Cuentas, licencias, pedidos, progreso y contadores de limite.
 [[d1_databases]]
 binding = "DB"

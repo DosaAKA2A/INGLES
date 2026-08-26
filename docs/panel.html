@@ -1,0 +1,571 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Panel · Curso de inglés</title>
+<style>
+/* El panel no comparte hoja con el curso a propósito: aquí manda la densidad,
+   no el aire. Es una herramienta de trabajo, no una pantalla de estudio. */
+:root{
+  --fondo:#f3f4f6; --tarjeta:#ffffff; --linea:#e4e6ea;
+  --tinta:#15181d; --tinta-2:#5b626d; --tinta-3:#9aa1ac;
+  --acento:#1668d8; --ok:#12805c; --mal:#c0392b; --aviso:#a86500;
+  --r:12px;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --fondo:#101317; --tarjeta:#181c22; --linea:#272c34;
+    --tinta:#eef1f5; --tinta-2:#a3abb7; --tinta-3:#6b7480;
+    --acento:#5aa2ff; --ok:#3fbf92; --mal:#ff7a6b; --aviso:#e0a33a;
+  }
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--fondo); color:var(--tinta);
+  font:15px/1.5 -apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+.mono{font-family:ui-monospace,"Cascadia Mono",Consolas,monospace;font-size:12.5px}
+.envoltura{max-width:1080px;margin:0 auto;padding:20px 16px 64px}
+
+header{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.rotulo{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--tinta-3)}
+h1{font-size:22px;margin:2px 0 0;font-weight:650}
+h2{font-size:15px;margin:0 0 12px;font-weight:650}
+
+.pestanas{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.pestanas button{
+  background:transparent;border:1px solid var(--linea);color:var(--tinta-2);
+  padding:7px 14px;border-radius:999px;cursor:pointer;font-size:13.5px;font-weight:550;
+}
+.pestanas button.viva{background:var(--acento);border-color:var(--acento);color:#fff}
+
+.tarjeta{background:var(--tarjeta);border:1px solid var(--linea);border-radius:var(--r);padding:16px;margin-bottom:14px}
+.rejilla{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.dato{background:var(--tarjeta);border:1px solid var(--linea);border-radius:var(--r);padding:14px}
+.dato b{display:block;font-size:26px;font-weight:650;line-height:1.2}
+.dato span{font-size:12px;color:var(--tinta-3)}
+
+label{display:block;font-size:12px;color:var(--tinta-2);margin:0 0 4px}
+input,select,textarea{
+  width:100%;padding:9px 11px;border-radius:9px;border:1px solid var(--linea);
+  background:var(--fondo);color:var(--tinta);font:inherit;
+}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--acento);outline-offset:-1px}
+.campos{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:12px}
+
+button.btn{
+  background:var(--acento);color:#fff;border:0;border-radius:9px;
+  padding:9px 16px;font:inherit;font-weight:600;cursor:pointer;
+}
+button.btn.plano{background:transparent;color:var(--tinta-2);border:1px solid var(--linea)}
+button.btn.malo{background:var(--mal)}
+button.btn:disabled{opacity:.5;cursor:default}
+.acciones{display:flex;gap:8px;flex-wrap:wrap}
+
+/* Las tablas anchas hacen scroll dentro de su caja: la página nunca se mueve
+   en horizontal, que en el celular es lo que rompe todo. */
+.tabla-caja{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;min-width:520px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--linea);vertical-align:top}
+th{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--tinta-3);font-weight:600}
+tbody tr:last-child td{border-bottom:0}
+
+.marca{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11.5px;font-weight:600;border:1px solid var(--linea);color:var(--tinta-2)}
+.marca.ok{color:var(--ok);border-color:currentColor}
+.marca.mal{color:var(--mal);border-color:currentColor}
+.marca.espera{color:var(--aviso);border-color:currentColor}
+
+.aviso{padding:10px 12px;border-radius:9px;border:1px solid var(--linea);font-size:13.5px;margin-bottom:12px}
+.aviso.ok{color:var(--ok)} .aviso.mal{color:var(--mal)}
+.gris{color:var(--tinta-2);font-size:13px}
+.oculto{display:none}
+.claves{background:var(--fondo);border:1px dashed var(--linea);border-radius:9px;padding:12px;margin-top:10px;white-space:pre-wrap}
+.entrar{max-width:380px;margin:12vh auto 0}
+</style>
+</head>
+<body>
+<div class="envoltura">
+
+<!-- ---- entrar ------------------------------------------------------------
+     Es el mismo alta que la del curso: código al correo. Encima pide el pase
+     de admin, que no viaja en la cuenta: quien se quede con el buzón todavía
+     no tiene el panel. -->
+<section id="v-entrar" class="entrar">
+  <div class="tarjeta">
+    <div class="rotulo">Curso de inglés</div>
+    <h1 style="margin-bottom:14px">Panel</h1>
+    <div id="e-aviso"></div>
+    <div id="e-paso1">
+      <label for="e-correo">Correo</label>
+      <input id="e-correo" type="email" autocomplete="email" placeholder="tu@correo.com">
+      <div class="acciones" style="margin-top:12px">
+        <button class="btn" id="e-pide">Enviar código</button>
+      </div>
+    </div>
+    <div id="e-paso2" class="oculto">
+      <label for="e-codigo">Código del correo</label>
+      <input id="e-codigo" class="mono" maxlength="6" autocomplete="one-time-code" placeholder="A1B2C3">
+      <div style="height:10px"></div>
+      <label for="e-pase">Pase de admin</label>
+      <input id="e-pase" type="password" autocomplete="off">
+      <div class="acciones" style="margin-top:12px">
+        <button class="btn" id="e-entra">Entrar</button>
+        <button class="btn plano" id="e-atras">Cambiar correo</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ---- panel ---------------------------------------------------------- -->
+<section id="v-panel" class="oculto">
+  <header>
+    <div>
+      <div class="rotulo">Curso de inglés</div>
+      <h1>Panel</h1>
+    </div>
+    <div class="acciones">
+      <span class="gris" id="quien"></span>
+      <button class="btn plano" id="salir">Salir</button>
+    </div>
+  </header>
+
+  <div class="pestanas">
+    <button data-p="resumen" class="viva">Resumen</button>
+    <button data-p="pedidos">Pedidos</button>
+    <button data-p="usuarios">Usuarios</button>
+    <button data-p="licencias">Licencias</button>
+  </div>
+
+  <div id="p-resumen"></div>
+  <div id="p-pedidos" class="oculto"></div>
+  <div id="p-usuarios" class="oculto"></div>
+  <div id="p-licencias" class="oculto"></div>
+</section>
+
+</div>
+<script>
+'use strict';
+
+const API = /^(localhost|127\.0\.0\.1)$/.test(location.hostname)
+  ? 'http://127.0.0.1:8787'
+  : 'https://ingles.studio-iris2026.workers.dev';
+
+// El token va en localStorage (dura 30 días, como en el curso) pero el pase de
+// admin solo en sessionStorage: al cerrar la pestaña se olvida. Un panel que
+// queda abierto solo con el token no puede hacer nada.
+const $ = (s) => document.querySelector(s);
+let token = localStorage.getItem('ingles-token') || '';
+let pase = sessionStorage.getItem('ingles-admin') || '';
+let correoEntrada = '';
+
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const fecha = (t) => t ? new Date(t * 1000).toLocaleString('es', { dateStyle: 'short', timeStyle: 'short' }) : '—';
+const dinero = (c, m) => c == null ? '—' : (c / 100).toFixed(2) + ' ' + (m || 'EUR');
+
+async function api(ruta, opciones = {}) {
+  const r = await fetch(API + ruta, {
+    ...opciones,
+    headers: {
+      Authorization: 'Bearer ' + token,
+      'X-Admin-Pase': pase,
+      'Content-Type': 'application/json',
+      ...(opciones.headers || {})
+    }
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || ('error ' + r.status));
+  return data;
+}
+
+function avisa(donde, texto, clase) {
+  $(donde).innerHTML = texto ? `<div class="aviso ${clase || ''}">${esc(texto)}</div>` : '';
+}
+
+// ---- entrar -----------------------------------------------------------------
+
+$('#e-pide').addEventListener('click', async () => {
+  correoEntrada = $('#e-correo').value.trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@.]+\.[^\s@]+$/.test(correoEntrada)) return avisa('#e-aviso', 'Revisa el correo.', 'mal');
+  $('#e-pide').disabled = true;
+  try {
+    await fetch(API + '/auth/codigo', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ correo: correoEntrada })
+    });
+    avisa('#e-aviso', 'Si esa cuenta existe, el código ya salió.', 'ok');
+    $('#e-paso1').classList.add('oculto');
+    $('#e-paso2').classList.remove('oculto');
+    $('#e-codigo').focus();
+  } catch (e) {
+    avisa('#e-aviso', 'No se pudo enviar: ' + e.message, 'mal');
+  }
+  $('#e-pide').disabled = false;
+});
+
+$('#e-atras').addEventListener('click', () => {
+  $('#e-paso2').classList.add('oculto');
+  $('#e-paso1').classList.remove('oculto');
+  avisa('#e-aviso', '');
+});
+
+$('#e-codigo').addEventListener('input', (e) => {
+  e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
+});
+
+$('#e-entra').addEventListener('click', async () => {
+  $('#e-entra').disabled = true;
+  try {
+    const r = await fetch(API + '/auth/entrar', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ correo: correoEntrada, codigo: $('#e-codigo').value })
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || 'fallo');
+    token = data.token;
+    pase = $('#e-pase').value;
+    localStorage.setItem('ingles-token', token);
+    sessionStorage.setItem('ingles-admin', pase);
+    await arranca();
+  } catch (e) {
+    avisa('#e-aviso', e.message, 'mal');
+  }
+  $('#e-entra').disabled = false;
+});
+
+$('#salir').addEventListener('click', () => {
+  fetch(API + '/auth/salir', { method: 'POST', headers: { Authorization: 'Bearer ' + token } }).catch(() => {});
+  localStorage.removeItem('ingles-token');
+  sessionStorage.removeItem('ingles-admin');
+  location.reload();
+});
+
+// ---- pestañas ---------------------------------------------------------------
+
+const PINTA = {};
+document.querySelectorAll('.pestanas button').forEach((b) => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('.pestanas button').forEach((o) => o.classList.toggle('viva', o === b));
+    for (const p of ['resumen', 'pedidos', 'usuarios', 'licencias']) {
+      $('#p-' + p).classList.toggle('oculto', p !== b.dataset.p);
+    }
+    PINTA[b.dataset.p]();
+  });
+});
+
+// ---- resumen ----------------------------------------------------------------
+
+PINTA.resumen = async () => {
+  const caja = $('#p-resumen');
+  caja.innerHTML = '<p class="gris">Cargando...</p>';
+  try {
+    const d = await api('/admin/resumen');
+    caja.innerHTML = `
+      <div class="rejilla" style="margin-bottom:14px">
+        <div class="dato"><b>${d.usuarios}</b><span>Cuentas</span></div>
+        <div class="dato"><b>${d.pedidosPendientes}</b><span>Pedidos por revisar</span></div>
+        <div class="dato"><b>${d.licenciasActivas}</b><span>Licencias activas</span></div>
+        <div class="dato"><b>${d.licenciasLibres}</b><span>Licencias sin usar</span></div>
+      </div>
+      <div class="tarjeta">
+        <h2>Últimos movimientos</h2>
+        <div class="tabla-caja"><table><thead><tr><th>Cuándo</th><th>Qué</th><th>Quién</th><th>Detalle</th></tr></thead>
+        <tbody>${d.eventos.map((e) => `<tr>
+          <td class="mono">${fecha(e.ts)}</td><td>${esc(e.tipo)}</td>
+          <td>${esc(e.quien)}</td><td class="mono">${esc(e.detalle)}</td></tr>`).join('')
+          || '<tr><td colspan="4" class="gris">Todavía no pasó nada.</td></tr>'}</tbody></table></div>
+      </div>`;
+  } catch (e) { caja.innerHTML = `<div class="aviso mal">${esc(e.message)}</div>`; }
+};
+
+// ---- pedidos ----------------------------------------------------------------
+// Aprobar genera la licencia, la une al pedido y la manda por correo. Rechazar
+// avisa al comprador con el motivo, que es lo mínimo si le cobraron.
+
+PINTA.pedidos = async (estado) => {
+  const caja = $('#p-pedidos');
+  estado = estado || 'pendiente';
+  caja.innerHTML = '<p class="gris">Cargando...</p>';
+  try {
+    const d = await api('/admin/pedidos?estado=' + estado);
+    caja.innerHTML = `
+      <div class="tarjeta">
+        <div class="acciones" style="margin-bottom:12px">
+          ${['pendiente', 'aprobado', 'rechazado', 'todos'].map((s) =>
+            `<button class="btn ${s === estado ? '' : 'plano'}" data-estado="${s}">${s[0].toUpperCase() + s.slice(1)}</button>`).join('')}
+        </div>
+        <div id="ped-aviso"></div>
+        <div class="tabla-caja"><table><thead><tr>
+          <th>Cuándo</th><th>Correo</th><th>Tipo</th><th>Importe</th><th>Pasarela</th><th>Estado</th><th></th>
+        </tr></thead><tbody>${d.pedidos.map((p) => `<tr>
+          <td class="mono">${fecha(p.creado)}</td>
+          <td>${esc(p.correo)}<div class="gris">${esc(p.nombre || '')}</div></td>
+          <td>${esc(p.tipo)}</td>
+          <td class="mono">${dinero(p.importe, p.moneda)}</td>
+          <td>${esc(p.pasarela || '—')}<div class="mono gris">${esc(p.ref || '')}</div></td>
+          <td><span class="marca ${p.estado === 'aprobado' ? 'ok' : p.estado === 'rechazado' ? 'mal' : 'espera'}">${esc(p.estado)}</span>
+              ${p.nota ? `<div class="gris">${esc(p.nota)}</div>` : ''}</td>
+          <td>${p.estado === 'pendiente' ? `<div class="acciones">
+                <button class="btn" data-aprobar="${p.id}">Aprobar</button>
+                <button class="btn malo" data-rechazar="${p.id}">Rechazar</button></div>` : ''}</td>
+        </tr>`).join('') || '<tr><td colspan="7" class="gris">Nada por acá.</td></tr>'}</tbody></table></div>
+      </div>`;
+
+    caja.querySelectorAll('[data-estado]').forEach((b) =>
+      b.addEventListener('click', () => PINTA.pedidos(b.dataset.estado)));
+
+    caja.querySelectorAll('[data-aprobar]').forEach((b) => b.addEventListener('click', async () => {
+      const dias = prompt('¿Cuántos días dura la licencia? Vacío = para siempre.', '');
+      if (dias === null) return;
+      b.disabled = true;
+      try {
+        const r = await api('/admin/pedidos/aprobar', {
+          method: 'POST', body: JSON.stringify({ id: b.dataset.aprobar, dias: dias || null })
+        });
+        await PINTA.pedidos(estado);
+        avisa('#ped-aviso', 'Licencia ' + r.clave + ' enviada por correo.', 'ok');
+      } catch (e) { avisa('#ped-aviso', e.message, 'mal'); b.disabled = false; }
+    }));
+
+    caja.querySelectorAll('[data-rechazar]').forEach((b) => b.addEventListener('click', async () => {
+      const motivo = prompt('Motivo (se lo mandamos al comprador):', 'No se pudo confirmar el pago.');
+      if (motivo === null) return;
+      b.disabled = true;
+      try {
+        await api('/admin/pedidos/rechazar', {
+          method: 'POST', body: JSON.stringify({ id: b.dataset.rechazar, motivo })
+        });
+        await PINTA.pedidos(estado);
+        avisa('#ped-aviso', 'Pedido rechazado y avisado.', 'ok');
+      } catch (e) { avisa('#ped-aviso', e.message, 'mal'); b.disabled = false; }
+    }));
+  } catch (e) { caja.innerHTML = `<div class="aviso mal">${esc(e.message)}</div>`; }
+};
+
+// ---- usuarios ---------------------------------------------------------------
+
+PINTA.usuarios = async (q) => {
+  const caja = $('#p-usuarios');
+  const busca = q === undefined ? ($('#u-q') ? $('#u-q').value : '') : q;
+  if (!caja.dataset.armado) {
+    caja.innerHTML = `
+      <div class="tarjeta">
+        <h2>Buscar cuenta</h2>
+        <div class="campos" style="grid-template-columns:1fr auto">
+          <input id="u-q" placeholder="Correo, nombre o código de usuario">
+          <button class="btn" id="u-busca">Buscar</button>
+        </div>
+        <div id="u-lista"></div>
+      </div>
+      <div id="u-ficha"></div>`;
+    caja.dataset.armado = '1';
+    $('#u-busca').addEventListener('click', () => PINTA.usuarios());
+    $('#u-q').addEventListener('keydown', (e) => { if (e.key === 'Enter') PINTA.usuarios(); });
+  }
+  $('#u-lista').innerHTML = '<p class="gris">Cargando...</p>';
+  try {
+    const d = await api('/admin/usuarios?q=' + encodeURIComponent(busca));
+    $('#u-lista').innerHTML = `<div class="tabla-caja"><table><thead><tr>
+      <th>Correo</th><th>Nombre</th><th>Código</th><th>Alta</th><th>Visto</th><th></th>
+      </tr></thead><tbody>${d.usuarios.map((u) => `<tr>
+        <td>${esc(u.correo)}${u.rol === 'admin' ? ' <span class="marca">admin</span>' : ''}
+            ${u.estado === 'bloqueada' ? ' <span class="marca mal">bloqueada</span>' : ''}</td>
+        <td>${esc(u.nombre)}</td><td class="mono">${esc(u.codigo)}</td>
+        <td class="mono">${fecha(u.creado)}</td><td class="mono">${fecha(u.visto)}</td>
+        <td><button class="btn plano" data-ficha="${u.id}">Ver</button></td>
+      </tr>`).join('') || '<tr><td colspan="6" class="gris">Sin resultados.</td></tr>'}</tbody></table></div>`;
+    $('#u-lista').querySelectorAll('[data-ficha]').forEach((b) =>
+      b.addEventListener('click', () => ficha(b.dataset.ficha)));
+  } catch (e) { $('#u-lista').innerHTML = `<div class="aviso mal">${esc(e.message)}</div>`; }
+};
+
+async function ficha(id) {
+  const caja = $('#u-ficha');
+  caja.innerHTML = '<div class="tarjeta"><p class="gris">Cargando...</p></div>';
+  try {
+    const d = await api('/admin/usuario?id=' + encodeURIComponent(id));
+    const u = d.usuario;
+    caja.innerHTML = `
+      <div class="tarjeta">
+        <h2>${esc(u.correo)}</h2>
+        <p class="gris">${esc(u.nombre)} &middot; código <span class="mono">${esc(u.codigo)}</span>
+          &middot; alta ${fecha(u.creado)}
+          &middot; progreso ${d.progreso ? Math.round(d.progreso.bytes / 1024) + ' KB, ' + fecha(d.progreso.actualizado) : 'sin guardar'}</p>
+        <div id="f-aviso" style="margin-top:10px"></div>
+        <div class="acciones">
+          <button class="btn ${u.estado === 'bloqueada' ? '' : 'malo'}" id="f-bloquear">
+            ${u.estado === 'bloqueada' ? 'Desbloquear' : 'Bloquear'}</button>
+          <button class="btn plano" id="f-entregar">Entregarle una licencia</button>
+        </div>
+
+        <h2 style="margin-top:18px">Licencias</h2>
+        <div class="tabla-caja"><table><thead><tr><th>Termina en</th><th>Tipo</th><th>Estado</th><th>Activada</th><th>Caduca</th><th></th></tr></thead>
+        <tbody>${d.licencias.map((l) => `<tr>
+          <td class="mono">${esc(l.pista)}</td><td>${esc(l.tipo)}</td>
+          <td><span class="marca ${l.estado === 'activa' ? 'ok' : l.estado === 'revocada' ? 'mal' : ''}">${esc(l.estado)}</span></td>
+          <td class="mono">${fecha(l.activada)}</td><td class="mono">${l.caduca ? fecha(l.caduca) : 'nunca'}</td>
+          <td>${l.estado !== 'revocada' ? `<button class="btn malo" data-revoca="${l.id}">Revocar</button>` : ''}</td>
+        </tr>`).join('') || '<tr><td colspan="6" class="gris">Ninguna.</td></tr>'}</tbody></table></div>
+
+        <h2 style="margin-top:18px">Sesiones abiertas (máximo 3)</h2>
+        <div class="tabla-caja"><table><thead><tr><th>Desde</th><th>Última vez</th><th>País</th><th>Navegador</th></tr></thead>
+        <tbody>${d.sesiones.map((s) => `<tr>
+          <td class="mono">${fecha(s.creada)}</td><td class="mono">${fecha(s.vista)}</td>
+          <td>${esc(s.pais || '—')}</td><td class="gris">${esc((s.ua || '').slice(0, 60))}</td>
+        </tr>`).join('') || '<tr><td colspan="4" class="gris">Ninguna.</td></tr>'}</tbody></table></div>
+      </div>`;
+
+    $('#f-bloquear').addEventListener('click', async () => {
+      const nuevo = u.estado === 'bloqueada' ? 'activa' : 'bloqueada';
+      if (nuevo === 'bloqueada' && !confirm('Bloquear cierra sus 3 sesiones y no puede volver a entrar. ¿Seguro?')) return;
+      try {
+        await api('/admin/usuario/estado', { method: 'POST', body: JSON.stringify({ id: u.id, estado: nuevo }) });
+        ficha(u.id);
+      } catch (e) { avisa('#f-aviso', e.message, 'mal'); }
+    });
+
+    $('#f-entregar').addEventListener('click', async () => {
+      const dias = prompt('¿Cuántos días? Vacío = para siempre.', '');
+      if (dias === null) return;
+      try {
+        const r = await api('/admin/licencias/entregar', {
+          method: 'POST', body: JSON.stringify({ correo: u.correo, tipo: 'premium', dias: dias || null })
+        });
+        avisa('#f-aviso', 'Enviada ' + r.clave + ' a ' + u.correo, 'ok');
+        setTimeout(() => ficha(u.id), 1200);
+      } catch (e) { avisa('#f-aviso', e.message, 'mal'); }
+    });
+
+    caja.querySelectorAll('[data-revoca]').forEach((b) => b.addEventListener('click', async () => {
+      const motivo = prompt('Motivo de la anulación:', '');
+      if (motivo === null) return;
+      try {
+        await api('/admin/licencias/revocar', { method: 'POST', body: JSON.stringify({ id: b.dataset.revoca, motivo }) });
+        ficha(u.id);
+      } catch (e) { avisa('#f-aviso', e.message, 'mal'); }
+    }));
+  } catch (e) { caja.innerHTML = `<div class="aviso mal">${esc(e.message)}</div>`; }
+}
+
+// ---- licencias --------------------------------------------------------------
+// Las claves recién generadas se ven UNA vez: en la base solo queda su hash.
+
+PINTA.licencias = async () => {
+  const caja = $('#p-licencias');
+  if (!caja.dataset.armado) {
+    caja.innerHTML = `
+      <div class="tarjeta">
+        <h2>Entregar a un correo</h2>
+        <p class="gris" style="margin:0 0 10px">Genera la clave y se la manda. No hace falta que ya tenga cuenta.</p>
+        <div class="campos">
+          <div><label for="g-correo">Correo</label><input id="g-correo" type="email" placeholder="cliente@correo.com"></div>
+          <div><label for="g-tipo1">Tipo</label><select id="g-tipo1"><option>premium</option><option>basica</option></select></div>
+          <div><label for="g-dias1">Días (vacío = para siempre)</label><input id="g-dias1" type="number" min="1" placeholder=""></div>
+        </div>
+        <button class="btn" id="g-entrega">Entregar</button>
+        <div id="g-aviso1" style="margin-top:12px"></div>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Generar un lote</h2>
+        <p class="gris" style="margin:0 0 10px">Sin destinatario, para repartir a mano. Las claves se ven una sola vez.</p>
+        <div class="campos">
+          <div><label for="g-cant">Cuántas</label><input id="g-cant" type="number" min="1" max="50" value="1"></div>
+          <div><label for="g-tipo2">Tipo</label><select id="g-tipo2"><option>premium</option><option>basica</option></select></div>
+          <div><label for="g-dias2">Días</label><input id="g-dias2" type="number" min="1" placeholder=""></div>
+          <div><label for="g-lote">Etiqueta del lote</label><input id="g-lote" placeholder="ej: navidad"></div>
+        </div>
+        <button class="btn" id="g-genera">Generar</button>
+        <div id="g-aviso2" style="margin-top:12px"></div>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Buscar licencias</h2>
+        <div class="campos" style="grid-template-columns:1fr auto">
+          <input id="l-q" placeholder="Correo del dueño, últimos 4 o lote">
+          <button class="btn" id="l-busca">Buscar</button>
+        </div>
+        <div id="l-lista"></div>
+      </div>`;
+    caja.dataset.armado = '1';
+
+    $('#g-entrega').addEventListener('click', async () => {
+      $('#g-entrega').disabled = true;
+      try {
+        const r = await api('/admin/licencias/entregar', {
+          method: 'POST', body: JSON.stringify({
+            correo: $('#g-correo').value.trim(),
+            tipo: $('#g-tipo1').value,
+            dias: $('#g-dias1').value || null
+          })
+        });
+        $('#g-aviso1').innerHTML = `<div class="aviso ok">Enviada</div><div class="claves mono">${esc(r.clave)}</div>`;
+      } catch (e) { avisa('#g-aviso1', e.message, 'mal'); }
+      $('#g-entrega').disabled = false;
+    });
+
+    $('#g-genera').addEventListener('click', async () => {
+      $('#g-genera').disabled = true;
+      try {
+        const r = await api('/admin/licencias/generar', {
+          method: 'POST', body: JSON.stringify({
+            cantidad: $('#g-cant').value,
+            tipo: $('#g-tipo2').value,
+            dias: $('#g-dias2').value || null,
+            lote: $('#g-lote').value.trim() || null
+          })
+        });
+        $('#g-aviso2').innerHTML = `<div class="aviso ok">Copialas ahora: no se pueden volver a ver.</div>
+          <div class="claves mono">${r.claves.map(esc).join('\n')}</div>`;
+      } catch (e) { avisa('#g-aviso2', e.message, 'mal'); }
+      $('#g-genera').disabled = false;
+    });
+
+    $('#l-busca').addEventListener('click', listaLicencias);
+    $('#l-q').addEventListener('keydown', (e) => { if (e.key === 'Enter') listaLicencias(); });
+  }
+  listaLicencias();
+};
+
+async function listaLicencias() {
+  $('#l-lista').innerHTML = '<p class="gris">Cargando...</p>';
+  try {
+    const d = await api('/admin/licencias?q=' + encodeURIComponent($('#l-q').value.trim()));
+    $('#l-lista').innerHTML = `<div class="tabla-caja"><table><thead><tr>
+      <th>Termina en</th><th>Tipo</th><th>Estado</th><th>Dueño</th><th>Lote</th><th>Creada</th><th>Caduca</th>
+      </tr></thead><tbody>${d.licencias.map((l) => `<tr>
+        <td class="mono">${esc(l.pista)}</td><td>${esc(l.tipo)}</td>
+        <td><span class="marca ${l.estado === 'activa' ? 'ok' : l.estado === 'revocada' ? 'mal' : ''}">${esc(l.estado)}</span></td>
+        <td>${l.correo ? esc(l.correo) : '<span class="gris">sin usar</span>'}</td>
+        <td>${esc(l.lote || '—')}</td>
+        <td class="mono">${fecha(l.creada)}</td>
+        <td class="mono">${l.caduca ? fecha(l.caduca) : 'nunca'}</td>
+      </tr>`).join('') || '<tr><td colspan="7" class="gris">Sin resultados.</td></tr>'}</tbody></table></div>`;
+  } catch (e) { $('#l-lista').innerHTML = `<div class="aviso mal">${esc(e.message)}</div>`; }
+}
+
+// ---- arranque ---------------------------------------------------------------
+
+async function arranca() {
+  if (!token || !pase) return;
+  try {
+    // /admin/resumen es la prueba de fuego: pide sesión Y pase de admin.
+    await api('/admin/resumen');
+  } catch (e) {
+    avisa('#e-aviso', 'Esa cuenta no es de admin, o el pase no es el correcto.', 'mal');
+    sessionStorage.removeItem('ingles-admin');
+    pase = '';
+    return;
+  }
+  const yo = await fetch(API + '/yo', { headers: { Authorization: 'Bearer ' + token } }).then((r) => r.json());
+  $('#quien').textContent = yo.correo;
+  $('#v-entrar').classList.add('oculto');
+  $('#v-panel').classList.remove('oculto');
+  PINTA.resumen();
+}
+
+arranca();
+</script>
+</body>
+</html>
