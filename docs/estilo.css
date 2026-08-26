@@ -420,6 +420,17 @@ h2 { font-weight: 900; font-size: 19px; margin: 28px 0 12px; }
 }
 .respuesta-texto::placeholder { color: var(--tinta-3); font-weight: 600; }
 
+/* Codigo de acceso y clave de licencia: se leen caracter a caracter, asi que
+   van centrados, separados y en una tipografia donde la O y el 0 no se
+   parezcan. El alfabeto ya evita los ambiguos, pero de balde no cuesta nada. */
+.codigo-acceso {
+  text-align: center;
+  font-family: ui-monospace, "Cascadia Mono", "SF Mono", Menlo, Consolas, monospace;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+}
+.codigo-acceso::placeholder { letter-spacing: .18em; text-transform: none; }
+
 .armado {
   min-height: 60px; display: flex; flex-wrap: wrap; gap: 9px; align-content: flex-start;
   border-radius: var(--r); box-shadow: var(--hundido);

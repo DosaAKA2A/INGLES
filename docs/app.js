@@ -8,7 +8,11 @@
 
 'use strict';
 
-const API = 'https://ingles.studio-iris2026.workers.dev';
+// Servida desde localhost, la página habla con el `wrangler dev` de al lado:
+// probar el registro contra el worker de verdad gastaría envíos de correo.
+const API = /^(localhost|127\.0\.0\.1)$/.test(location.hostname)
+  ? 'http://127.0.0.1:8787'
+  : 'https://ingles.studio-iris2026.workers.dev';
 const CLAVE_LOCAL = 'ingles-progreso';
 const CLAVE_TOKEN = 'ingles-token';
 const CLAVE_AJUSTES = 'ingles-ajustes';
@@ -48,6 +52,28 @@ let AJ = JSON.parse(localStorage.getItem(CLAVE_AJUSTES) || '{"lento":false}');
 let token = localStorage.getItem(CLAVE_TOKEN) || '';
 let guardadoPendiente = null;
 
+// Perfil de la cuenta: correo, nombre, codigo y licencia. Es null mientras no
+// se haya entrado. El curso entero funciona igual sin cuenta; lo que hace falta
+// tener cuenta es sincronizar el progreso y, con licencia premium, la IA.
+let yo = null;
+
+async function cargaYo() {
+  if (!token) { yo = null; return null; }
+  try {
+    const r = await fetch(API + '/yo', { headers: { Authorization: 'Bearer ' + token } });
+    if (r.status === 401) { salirDeLaCuenta(); return null; }
+    if (!r.ok) return yo;
+    yo = await r.json();
+  } catch (e) { /* sin red: se queda con lo ultimo que sabia */ }
+  return yo;
+}
+
+function salirDeLaCuenta() {
+  token = ''; yo = null;
+  localStorage.removeItem(CLAVE_TOKEN);
+  conectaVozNube();
+}
+
 function progresoVacio() {
   return { v: 1, xp: 0, racha: { dias: 0, ultimo: '' }, unidades: {}, srs: {}, mod: 0 };
 }
@@ -84,7 +110,7 @@ async function bajaProgreso() {
   if (!token) return;
   try {
     const r = await fetch(API + '/progreso', { headers: { Authorization: 'Bearer ' + token } });
-    if (r.status === 401) { token = ''; localStorage.removeItem(CLAVE_TOKEN); return; }
+    if (r.status === 401) { salirDeLaCuenta(); return; }
     if (!r.ok) return;
     const remoto = await r.json();
     if (remoto && remoto.v === 1 && (remoto.mod || 0) > (P.mod || 0)) {
@@ -96,10 +122,13 @@ async function bajaProgreso() {
   } catch (e) { /* sin red */ }
 }
 
-// Con pase, el texto dinámico (chat, ensayos) se dice con la voz neuronal del
-// worker; sin él (o sin clave de Groq), Voz cae sola al sintetizador.
+// Con licencia premium, el texto dinámico (chat, ensayos) se dice con la voz
+// neuronal del worker y el dictado lo transcribe Whisper; sin ella, Voz cae
+// sola al sintetizador y al reconocimiento del navegador. Se mira `premium` y
+// no solo el token: si no, cada frase pediría al worker un 402.
 function conectaVozNube() {
-  Voz.oido = !token ? null : async (blob) => {
+  const premium = !!(token && yo && yo.premium);
+  Voz.oido = !premium ? null : async (blob) => {
     const r = await fetch(API + '/ia/oido', {
       method: 'POST',
       headers: { Authorization: 'Bearer ' + token, 'Content-Type': blob.type || 'audio/webm' },
@@ -108,7 +137,7 @@ function conectaVozNube() {
     if (!r.ok) return null;
     return (await r.json()).texto;
   };
-  Voz.nube = !token ? null : async (texto) => {
+  Voz.nube = !premium ? null : async (texto) => {
     const r = await fetch(API + '/ia/voz', {
       method: 'POST',
       headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
@@ -632,7 +661,7 @@ function vEnsayo(unidad) {
   });
 
   $('#enviar').addEventListener('click', async () => {
-    if (!token) { modalPase(() => vEnsayo(unidad)); return; }
+    if (!pideIA(() => vEnsayo(unidad))) return;
     $('#enviar').disabled = true;
     $('#enviar').textContent = 'Corrigiendo...';
     try {
@@ -1179,7 +1208,7 @@ function vCharla() {
   const manda = async () => {
     const texto = $('#entrada').value.trim();
     if (!texto) return;
-    if (!token) { modalPase(vCharla); return; }
+    if (!pideIA(vCharla)) return;
     $('#entrada').value = '';
     charlaHist.push({ role: 'user', content: texto });
     pintaMsg('user', texto);
@@ -1236,7 +1265,7 @@ function vPerfil() {
       }).join('')}
     </div>
     <div class="espacio"></div>
-    <p class="gris chica">${token ? 'Progreso sincronizado con la nube.' : 'Progreso solo en este dispositivo. Conéctalo desde Ajustes para llevarlo al celular.'}</p>`;
+    <p class="gris chica">${token ? 'Progreso sincronizado con tu cuenta.' : 'Progreso solo en este dispositivo. Entra con tu correo desde Ajustes para llevarlo al celular.'}</p>`;
 }
 
 // ---- ajustes y pase ---------------------------------------------------------
@@ -1294,8 +1323,16 @@ btnMenu.addEventListener('click', () => {
       <label class="interruptor"><input type="checkbox" id="aj-lento" ${AJ.lento ? 'checked' : ''}><i></i></label>
     </div>
     <div class="fila">
-      <span>Sincronización<br><span class="gris chica" id="aj-sync-estado">${token ? 'Conectada' : 'Sin conectar'}</span></span>
-      <button class="btn secundario" id="aj-conectar" style="padding:8px 14px">${token ? 'Desconectar' : 'Conectar'}</button>
+      <span>Cuenta<br><span class="gris chica" id="aj-sync-estado">${yo
+        ? esc(yo.correo) + ' &middot; ' + esc(yo.codigo)
+        : (token ? 'Conectada' : 'Sin cuenta: el progreso no sale de este dispositivo')}</span></span>
+      <button class="btn secundario" id="aj-conectar" style="padding:8px 14px">${token ? 'Salir' : 'Entrar'}</button>
+    </div>
+    <div class="fila">
+      <span>Licencia<br><span class="gris chica" id="aj-lic-estado">${yo && yo.licencia
+        ? esc(yo.licencia.tipo[0].toUpperCase() + yo.licencia.tipo.slice(1)) + ' &middot; termina en ' + esc(yo.licencia.pista)
+        : 'Sin licencia: la práctica con IA está apagada'}</span></span>
+      <button class="btn secundario" id="aj-licencia" style="padding:8px 14px">${yo && yo.licencia ? 'Cambiar' : 'Activar'}</button>
     </div>
     <div class="fila">
       <span>Tu perfil<br><span class="gris chica">${P.perfil ? esc(P.perfil.nombre) + ' &middot; ' + esc(etiquetaMotivo(P.perfil.motivo)) + (P.perfil.meta ? ' &middot; ' + P.perfil.meta + ' min/día' : '') : 'Sin completar'}</span></span>
@@ -1311,16 +1348,26 @@ btnMenu.addEventListener('click', () => {
     AJ.lento = e.target.checked;
     localStorage.setItem(CLAVE_AJUSTES, JSON.stringify(AJ));
   });
-  capa.querySelector('#aj-conectar').addEventListener('click', () => {
+  capa.querySelector('#aj-conectar').addEventListener('click', async () => {
     if (token) {
-      token = ''; localStorage.removeItem(CLAVE_TOKEN);
-      conectaVozNube();
-      capa.querySelector('#aj-sync-estado').textContent = 'Sin conectar';
-      capa.querySelector('#aj-conectar').textContent = 'Conectar';
+      // Se avisa al worker para que la sesión muera del lado de allá también:
+      // si no, seguiría contando contra el tope de 3 durante 30 días.
+      fetch(API + '/auth/salir', { method: 'POST', headers: { Authorization: 'Bearer ' + token } })
+        .catch(() => { /* da igual: local ya se limpia */ });
+      salirDeLaCuenta();
+      capa.querySelector('#aj-sync-estado').textContent = 'Sin cuenta: el progreso no sale de este dispositivo';
+      capa.querySelector('#aj-conectar').textContent = 'Entrar';
+      capa.querySelector('#aj-lic-estado').textContent = 'Sin licencia: la práctica con IA está apagada';
+      capa.querySelector('#aj-licencia').textContent = 'Activar';
     } else {
       cierraPanel();
-      modalPase(() => {});
+      modalCuenta();
     }
+  });
+  capa.querySelector('#aj-licencia').addEventListener('click', () => {
+    cierraPanel();
+    if (!token) { modalCuenta(() => modalLicencia()); return; }
+    modalLicencia();
   });
   capa.querySelector('#aj-borrar').addEventListener('click', () => {
     capa.querySelector('#aj-borrar').textContent = 'Seguro?';
@@ -1334,44 +1381,185 @@ btnMenu.addEventListener('click', () => {
   capa.querySelector('#aj-cerrar').addEventListener('click', () => cierraPanel());
 });
 
-function modalPase(despues) {
+// Entrar es siempre el mismo camino, haya cuenta o no: se pide un código al
+// correo y se escribe. Ese código es a la vez el registro y la confirmación,
+// así que no existe "cuenta sin confirmar" ni "olvidé mi contraseña".
+function modalCuenta(despues) {
+  despues = despues || (() => {});
+  let correo = '';
+
+  function paso1() {
+    const capa = modal(`
+      <h2>Entrar</h2>
+      <p class="gris chica">Te mandamos un código al correo. No hay contraseña que recordar.</p>
+      <div class="espacio"></div>
+      <input class="respuesta-texto" id="c-correo" type="email" inputmode="email"
+             autocomplete="email" placeholder="tu@correo.com" value="${esc(correo)}">
+      <p class="gris chica" id="c-error" style="margin-top:8px"></p>
+      <div class="acciones">
+        <button class="btn secundario" id="c-no">Ahora no</button>
+        <button class="btn acento" id="c-si" style="flex:1">Enviar código</button>
+      </div>`);
+    const manda = async () => {
+      correo = capa.querySelector('#c-correo').value.trim();
+      if (!/^[^\s@]+@[^\s@.]+\.[^\s@]+$/.test(correo)) {
+        capa.querySelector('#c-error').textContent = 'Revisa el correo.';
+        return;
+      }
+      capa.querySelector('#c-si').disabled = true;
+      capa.querySelector('#c-si').textContent = 'Enviando...';
+      try {
+        const r = await fetch(API + '/auth/codigo', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ correo })
+        });
+        if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || 'no se pudo enviar');
+        paso2();
+      } catch (err) {
+        capa.querySelector('#c-error').textContent = 'No se pudo enviar: ' + err.message;
+        capa.querySelector('#c-si').disabled = false;
+        capa.querySelector('#c-si').textContent = 'Enviar código';
+      }
+    };
+    capa.querySelector('#c-si').addEventListener('click', manda);
+    capa.querySelector('#c-correo').addEventListener('keydown', (e) => { if (e.key === 'Enter') manda(); });
+    capa.querySelector('#c-no').addEventListener('click', cierraModal);
+    capa.querySelector('#c-correo').focus();
+  }
+
+  function paso2() {
+    const capa = modal(`
+      <h2>Tu código</h2>
+      <p class="gris chica">Lo mandamos a ${esc(correo)}. Son 6 caracteres y vencen en 10 minutos.</p>
+      <div class="espacio"></div>
+      <input class="respuesta-texto codigo-acceso" id="c-codigo" type="text" inputmode="text"
+             autocomplete="one-time-code" autocapitalize="characters" spellcheck="false"
+             maxlength="7" placeholder="A1B2C3">
+      <input class="respuesta-texto" id="c-nombre" type="text" maxlength="32"
+             style="margin-top:10px" placeholder="Cómo querés que te llamemos">
+      <p class="gris chica" style="margin-top:6px">El nombre solo se usa la primera vez.</p>
+      <p class="gris chica" id="c-error" style="margin-top:8px"></p>
+      <div class="acciones">
+        <button class="btn secundario" id="c-atras">Cambiar correo</button>
+        <button class="btn acento" id="c-si" style="flex:1">Entrar</button>
+      </div>`);
+    const campo = capa.querySelector('#c-codigo');
+    campo.addEventListener('input', () => {
+      campo.value = campo.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
+    });
+    const entra = async () => {
+      const codigo = campo.value;
+      if (codigo.length !== 6) { capa.querySelector('#c-error').textContent = 'Son 6 caracteres.'; return; }
+      capa.querySelector('#c-si').disabled = true;
+      try {
+        const r = await fetch(API + '/auth/entrar', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ correo, codigo, nombre: capa.querySelector('#c-nombre').value })
+        });
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.error || 'fallo');
+        token = data.token;
+        yo = data.usuario;
+        localStorage.setItem(CLAVE_TOKEN, token);
+        conectaVozNube();
+        cierraModal();
+        await bajaProgreso();
+        subeProgreso();
+        despues();
+      } catch (err) {
+        capa.querySelector('#c-error').textContent = err.message;
+        capa.querySelector('#c-si').disabled = false;
+      }
+    };
+    capa.querySelector('#c-si').addEventListener('click', entra);
+    campo.addEventListener('keydown', (e) => { if (e.key === 'Enter') entra(); });
+    capa.querySelector('#c-atras').addEventListener('click', paso1);
+    campo.focus();
+  }
+
+  paso1();
+}
+
+// La clave se une a la cuenta y ya no sale de ahí: por eso el aviso.
+function modalLicencia(despues) {
+  despues = despues || (() => {});
   const capa = modal(`
-    <h2>Conectar</h2>
-    <p class="gris chica">El pase guarda tu progreso en la nube y habilita la IA (ensayos y conversación).</p>
+    <h2>Activar licencia</h2>
+    <p class="gris chica">Pega la clave que te llegó por correo. Queda unida a esta cuenta.</p>
     <div class="espacio"></div>
-    <input class="respuesta-texto" id="pase" type="password" placeholder="Pase" autocomplete="current-password">
-    <p class="gris chica" id="pase-error" style="margin-top:8px"></p>
+    <input class="respuesta-texto codigo-acceso" id="l-clave" type="text" spellcheck="false"
+           autocapitalize="characters" maxlength="19" placeholder="INGL-XXXX-XXXX-XXXX">
+    <p class="gris chica" id="l-error" style="margin-top:8px"></p>
     <div class="acciones">
-      <button class="btn secundario" id="pase-no">Ahora no</button>
-      <button class="btn acento" id="pase-si" style="flex:1">Entrar</button>
+      <button class="btn secundario" id="l-no">Cerrar</button>
+      <button class="btn acento" id="l-si" style="flex:1">Activar</button>
     </div>`);
-  const entra = async () => {
-    const pase = capa.querySelector('#pase').value;
-    if (!pase) return;
-    capa.querySelector('#pase-si').disabled = true;
+  const campo = capa.querySelector('#l-clave');
+  // Se formatea al escribir para que se vea igual que en el correo.
+  campo.addEventListener('input', () => {
+    let s = campo.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    if (s.startsWith('INGL')) s = s.slice(4);
+    s = s.slice(0, 12);
+    campo.value = 'INGL' + (s ? '-' + (s.match(/.{1,4}/g) || []).join('-') : '');
+  });
+  const activa = async () => {
+    capa.querySelector('#l-si').disabled = true;
     try {
-      const r = await fetch(API + '/entrar', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pase })
+      const r = await fetch(API + '/licencia', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ clave: campo.value })
       });
       const data = await r.json();
       if (!r.ok) throw new Error(data.error || 'fallo');
-      token = data.token;
-      localStorage.setItem(CLAVE_TOKEN, token);
-      conectaVozNube();
+      await cargaYo();
       cierraModal();
-      await bajaProgreso();
-      subeProgreso();
       despues();
     } catch (err) {
-      capa.querySelector('#pase-error').textContent = err.message === 'pase incorrecto' ? 'Pase incorrecto.' : 'No se pudo conectar: ' + err.message;
-      capa.querySelector('#pase-si').disabled = false;
+      capa.querySelector('#l-error').textContent = err.message;
+      capa.querySelector('#l-si').disabled = false;
     }
   };
-  capa.querySelector('#pase-si').addEventListener('click', entra);
-  capa.querySelector('#pase').addEventListener('keydown', (e) => { if (e.key === 'Enter') entra(); });
-  capa.querySelector('#pase-no').addEventListener('click', cierraModal);
-  capa.querySelector('#pase').focus();
+  capa.querySelector('#l-si').addEventListener('click', activa);
+  campo.addEventListener('keydown', (e) => { if (e.key === 'Enter') activa(); });
+  capa.querySelector('#l-no').addEventListener('click', cierraModal);
+  campo.focus();
+}
+
+// Lo que pide licencia premium: ensayos corregidos, tutor de conversación,
+// dictado por micrófono con Whisper y las voces neuronales.
+function modalPremium(despues) {
+  const capa = modal(`
+    <h2>Esto es premium</h2>
+    <p class="gris chica">Practicar con la IA (ensayos, conversación y voz) necesita una licencia
+      premium activa. El resto del curso sigue completo sin ella.</p>
+    <p class="gris chica" id="p-aviso" style="margin-top:10px"></p>
+    <div class="acciones">
+      <button class="btn secundario" id="p-pedir">Quiero una</button>
+      <button class="btn acento" id="p-tengo" style="flex:1">Ya tengo la clave</button>
+    </div>`);
+  capa.querySelector('#p-tengo').addEventListener('click', () => modalLicencia(despues));
+  capa.querySelector('#p-pedir').addEventListener('click', async () => {
+    capa.querySelector('#p-pedir').disabled = true;
+    try {
+      const r = await fetch(API + '/pedido', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ correo: yo ? yo.correo : '', nombre: yo ? yo.nombre : '', tipo: 'premium' })
+      });
+      if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || 'fallo');
+      capa.querySelector('#p-aviso').textContent = 'Anotado. Te escribimos a ' + (yo ? yo.correo : 'tu correo') + ' con los pasos.';
+    } catch (err) {
+      capa.querySelector('#p-aviso').textContent = 'No se pudo anotar: ' + err.message;
+      capa.querySelector('#p-pedir').disabled = false;
+    }
+  });
+}
+
+// Puerta única a todo lo de pago: sin cuenta pide entrar, sin licencia explica.
+function pideIA(despues) {
+  if (!token) { modalCuenta(() => pideIA(despues)); return false; }
+  if (!yo || !yo.premium) { modalPremium(despues); return false; }
+  return true;
 }
 
 // ---- arranque ---------------------------------------------------------------
@@ -1409,6 +1597,9 @@ pintaBarra();
 conectaVozNube();
 vInicio();
 bajaProgreso();
+// El perfil dice si hay licencia, y de eso depende que la voz de la nube y el
+// dictado se enchufen: por eso se vuelve a conectar cuando llega la respuesta.
+cargaYo().then(() => conectaVozNube());
 
 
 // ---- intro ------------------------------------------------------------------
