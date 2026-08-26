@@ -11,15 +11,14 @@
       }
     </style>
     <linearGradient id="wl-g" x1="404.7" y1="289.93" x2="631.95" y2="3.07" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#3ad8f0"/>
-      <stop offset="1" stop-color="#7ce9f8"/>
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#ffffff"/>
     </linearGradient>
     <linearGradient id="wl-g-2" x1="27.15" y1="5.32" x2="395.97" y2="407.68" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#1266cc"/>
-      <stop offset=".55" stop-color="#21a3e8"/>
-      <stop offset="1" stop-color="#3ad8f0"/>
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#e6f3ff"/>
     </linearGradient>
   </defs>
-  <path class="wl-c2" d="M259.91,421.78h0c-44.7-44.7-44.7-117.17,0-161.86L486.3,33.52c44.7-44.7,117.17-44.7,161.86,0h0c44.7,44.7,44.7,117.17,0,161.86l-226.39,226.39c-44.7,44.7-117.17,44.7-161.86,0Z"/>
+  <path fill-opacity=".72" class="wl-c2" d="M259.91,421.78h0c-44.7-44.7-44.7-117.17,0-161.86L486.3,33.52c44.7-44.7,117.17-44.7,161.86,0h0c44.7,44.7,44.7,117.17,0,161.86l-226.39,226.39c-44.7,44.7-117.17,44.7-161.86,0Z"/>
   <path class="wl-c1" d="M502.71,340.84l-80.93,80.93c-44.7,44.7-117.17,44.7-161.86,0L33.52,195.39c-44.7-44.7-44.7-117.17,0-161.86h0c44.7-44.7,117.17-44.7,161.86,0l307.32,307.32Z"/>
 </svg>
