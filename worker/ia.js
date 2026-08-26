@@ -205,13 +205,13 @@ export async function ruta(env, req, url, usuario, cors) {
 
   const cuota = await gastaCuota(env, usuario.id, tipo);
   if (!cuota.ok) {
-    return json({ error: 'llegaste al tope de hoy (' + TOPES[tipo] + '). Vuelve manana.' }, 429);
+    return json({ error: 'llegaste al tope de hoy (' + TOPES[tipo] + '). Vuelve mañana.' }, 429);
   }
 
   if (p === '/ia/ensayo') {
     if (!env.GROQ_API_KEY) return json({ error: 'sin clave de IA' }, 503);
     const { consigna, texto, nivel, nombre, motivo } = await req.json().catch(() => ({}));
-    if (!texto || String(texto).trim().length < 5) return json({ error: 'ensayo vacio' }, 400);
+    if (!texto || String(texto).trim().length < 5) return json({ error: 'ensayo vacío' }, 400);
     let sistema = PROMPT_ENSAYO.replace(/\{NIVEL\}/g, nivel || 'A1');
     if (nombre || motivo) sistema += '\nContexto: el estudiante' + (nombre ? ' se llama ' + String(nombre).slice(0, 40) : '') + (motivo ? ' y aprende ingles por: ' + String(motivo).slice(0, 60) + ' (el consejo puede orientarse a eso)' : '') + '.';
     const usuarioMsg = 'Consigna de la tarea: ' + (consigna || '(libre)') +
@@ -222,7 +222,7 @@ export async function ruta(env, req, url, usuario, cors) {
     ], 2000);
     const obj = primerJSON(crudo);
     if (!obj || typeof obj.puntaje !== 'number') {
-      return json({ error: 'la IA no devolvio una correccion valida' }, 502);
+      return json({ error: 'la IA no devolvió una corrección válida' }, 502);
     }
     return json(obj);
   }
@@ -239,7 +239,7 @@ export async function ruta(env, req, url, usuario, cors) {
       content: String(m.content || '').slice(0, 1000)
     }));
     const texto = await llamaGroq(env, [{ role: 'system', content: sistema }, ...recorte], 1200);
-    if (!texto) return json({ error: 'respuesta vacia de la IA' }, 502);
+    if (!texto) return json({ error: 'respuesta vacía de la IA' }, 502);
     return json({ texto });
   }
 

@@ -1436,7 +1436,7 @@ function modalCuenta(despues) {
              autocomplete="one-time-code" autocapitalize="characters" spellcheck="false"
              maxlength="7" placeholder="A1B2C3">
       <input class="respuesta-texto" id="c-nombre" type="text" maxlength="32"
-             style="margin-top:10px" placeholder="Cómo querés que te llamemos">
+             style="margin-top:10px" placeholder="Cómo quieres que te llamemos">
       <p class="gris chica" style="margin-top:6px">El nombre solo se usa la primera vez.</p>
       <p class="gris chica" id="c-error" style="margin-top:8px"></p>
       <div class="acciones">

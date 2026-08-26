@@ -115,7 +115,7 @@ export default {
       if (url.pathname === '/pedido' && req.method === 'POST') {
         const c = await req.json().catch(() => ({}));
         const correo = normalizaCorreo(c.correo);
-        if (!correoValido(correo)) return json({ error: 'correo no valido' }, 400);
+        if (!correoValido(correo)) return json({ error: 'correo no válido' }, 400);
         const tope = await limites(env, [
           ['ped:ip:' + ip(req), 5, 3600],
           ['ped:correo:' + correo, 3, 86400]
@@ -190,7 +190,7 @@ export default {
         if (!lic || lic.tipo !== 'premium') {
           return json({
             error: 'premium',
-            detalle: 'la practica con IA necesita una licencia premium activa'
+            detalle: 'la práctica con IA necesita una licencia premium activa'
           }, 402);
         }
         return await ia.ruta(env, req, url, usuario, cors);

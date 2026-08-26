@@ -29,7 +29,7 @@ const MAX_SESIONES = 3;             // por cuenta; la cuarta echa a la mas vieja
 
 export async function pideCodigo(env, req, cuerpo) {
   const correo = normalizaCorreo(cuerpo.correo);
-  if (!correoValido(correo)) return { estado: 400, cuerpo: { error: 'correo no valido' } };
+  if (!correoValido(correo)) return { estado: 400, cuerpo: { error: 'correo no válido' } };
 
   const tope = await limites(env, [
     ['cod:correo:' + correo, 3, 3600],
@@ -63,7 +63,7 @@ export async function verificaCodigo(env, req, cuerpo) {
   if (tope) return { estado: 429, cuerpo: { error: 'demasiados intentos, espera un rato' } };
 
   const fila = await env.DB.prepare('SELECT * FROM codigos WHERE correo = ?1').bind(correo).first();
-  const malo = { estado: 401, cuerpo: { error: 'codigo incorrecto o vencido' } };
+  const malo = { estado: 401, cuerpo: { error: 'código incorrecto o vencido' } };
   if (!fila || fila.caduca < ahora()) return malo;
 
   if (fila.intentos >= INTENTOS_CODIGO) {
@@ -80,7 +80,7 @@ export async function verificaCodigo(env, req, cuerpo) {
 
   const usuario = await dameOCreaUsuario(env, correo, cuerpo.nombre);
   if (usuario.estado === 'bloqueada') {
-    return { estado: 403, cuerpo: { error: 'esta cuenta esta bloqueada' } };
+    return { estado: 403, cuerpo: { error: 'esta cuenta está bloqueada' } };
   }
 
   const ses = await abreSesion(env, req, usuario.id);
@@ -134,7 +134,7 @@ export async function perfil(env, usuario) {
 
 export async function cambiaNombre(env, usuarioId, nombre) {
   const limpio = limpiaNombre(nombre);
-  if (!limpio) return { estado: 400, cuerpo: { error: 'el nombre no puede estar vacio' } };
+  if (!limpio) return { estado: 400, cuerpo: { error: 'el nombre no puede estar vacío' } };
   await env.DB.prepare('UPDATE usuarios SET nombre = ?2 WHERE id = ?1').bind(usuarioId, limpio).run();
   return { estado: 200, cuerpo: { ok: true, nombre: limpio } };
 }
@@ -155,7 +155,7 @@ async function abreSesion(env, req, usuarioId) {
   ).run();
 
   // Tope de 3 sesiones vivas por cuenta: la mas vieja cae sola. No limita
-  // equipos (podes entrar desde donde quieras), limita cuantos a la vez.
+  // equipos (se puede entrar desde donde sea), limita cuantos a la vez.
   await env.DB.prepare(
     `DELETE FROM sesiones WHERE usuario_id = ?1 AND hash NOT IN (
        SELECT hash FROM sesiones WHERE usuario_id = ?1 ORDER BY vista DESC LIMIT ?2)`
@@ -249,7 +249,7 @@ export async function activaLicencia(env, req, usuario, cuerpo) {
   if (lic.estado === 'activa') {
     return lic.usuario_id === usuario.id
       ? { estado: 200, cuerpo: { ok: true, ya: true, licencia: { tipo: lic.tipo, pista: lic.pista, caduca: lic.caduca } } }
-      : { estado: 409, cuerpo: { error: 'esa licencia ya esta en uso en otra cuenta' } };
+      : { estado: 409, cuerpo: { error: 'esa licencia ya está en uso en otra cuenta' } };
   }
 
   const t = ahora();
@@ -259,7 +259,7 @@ export async function activaLicencia(env, req, usuario, cuerpo) {
     `UPDATE licencias SET estado = 'activa', usuario_id = ?2, activada = ?3
      WHERE id = ?1 AND estado = 'libre'`
   ).bind(lic.id, usuario.id, t).run();
-  if (!r.meta.changes) return { estado: 409, cuerpo: { error: 'esa licencia ya esta en uso' } };
+  if (!r.meta.changes) return { estado: 409, cuerpo: { error: 'esa licencia ya está en uso' } };
 
   await env.DB.prepare('INSERT INTO eventos (ts, tipo, quien, detalle) VALUES (?1, ?2, ?3, ?4)')
     .bind(t, 'licencia.activada', usuario.correo, lic.pista + ' (' + lic.tipo + ')').run();

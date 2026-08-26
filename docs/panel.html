@@ -309,7 +309,7 @@ PINTA.pedidos = async (estado) => {
           <td>${p.estado === 'pendiente' ? `<div class="acciones">
                 <button class="btn" data-aprobar="${p.id}">Aprobar</button>
                 <button class="btn malo" data-rechazar="${p.id}">Rechazar</button></div>` : ''}</td>
-        </tr>`).join('') || '<tr><td colspan="7" class="gris">Nada por acá.</td></tr>'}</tbody></table></div>
+        </tr>`).join('') || '<tr><td colspan="7" class="gris">Nada por aquí.</td></tr>'}</tbody></table></div>
       </div>`;
 
     caja.querySelectorAll('[data-estado]').forEach((b) =>
@@ -516,7 +516,7 @@ PINTA.licencias = async () => {
             lote: $('#g-lote').value.trim() || null
           })
         });
-        $('#g-aviso2').innerHTML = `<div class="aviso ok">Copialas ahora: no se pueden volver a ver.</div>
+        $('#g-aviso2').innerHTML = `<div class="aviso ok">Cópialas ahora: no se pueden volver a ver.</div>
           <div class="claves mono">${r.claves.map(esc).join('\n')}</div>`;
       } catch (e) { avisa('#g-aviso2', e.message, 'mal'); }
       $('#g-genera').disabled = false;

@@ -134,7 +134,7 @@ export async function ruta(env, req, url, usuario) {
   // que la cuenta exista todavia; al entrar con ese correo la activa.
   if (p === '/licencias/entregar' && met === 'POST') {
     const correo = normalizaCorreo(cuerpo.correo);
-    if (!correoValido(correo)) return { estado: 400, cuerpo: { error: 'correo no valido' } };
+    if (!correoValido(correo)) return { estado: 400, cuerpo: { error: 'correo no válido' } };
     const clave = await creaLicencia(env, { tipo: cuerpo.tipo, dias: cuerpo.dias, lote: cuerpo.lote, nota: 'entrega manual a ' + correo });
     const u = await env.DB.prepare('SELECT nombre FROM usuarios WHERE correo = ?1').bind(correo).first();
     const pl = plantillaLicencia(clave, u?.nombre);
@@ -163,7 +163,7 @@ export async function ruta(env, req, url, usuario) {
   if (p === '/pedidos/aprobar' && met === 'POST') {
     const ped = await env.DB.prepare("SELECT * FROM pedidos WHERE id = ?1 AND estado = 'pendiente'")
       .bind(cuerpo.id).first();
-    if (!ped) return { estado: 404, cuerpo: { error: 'ese pedido no esta pendiente' } };
+    if (!ped) return { estado: 404, cuerpo: { error: 'ese pedido no está pendiente' } };
 
     const clave = await creaLicencia(env, {
       tipo: ped.tipo, dias: cuerpo.dias, lote: 'pedido', nota: 'pedido ' + ped.id, pedidoId: ped.id
@@ -181,7 +181,7 @@ export async function ruta(env, req, url, usuario) {
   if (p === '/pedidos/rechazar' && met === 'POST') {
     const ped = await env.DB.prepare("SELECT * FROM pedidos WHERE id = ?1 AND estado = 'pendiente'")
       .bind(cuerpo.id).first();
-    if (!ped) return { estado: 404, cuerpo: { error: 'ese pedido no esta pendiente' } };
+    if (!ped) return { estado: 404, cuerpo: { error: 'ese pedido no está pendiente' } };
     const motivo = String(cuerpo.motivo || '').slice(0, 200);
     await env.DB.prepare("UPDATE pedidos SET estado = 'rechazado', resuelto = ?2, nota = ?3 WHERE id = ?1")
       .bind(ped.id, ahora(), motivo).run();
@@ -197,7 +197,7 @@ export async function ruta(env, req, url, usuario) {
   // (transferencia, Yape, lo que sea) y hay que dejar constancia igual.
   if (p === '/pedidos/nuevo' && met === 'POST') {
     const correo = normalizaCorreo(cuerpo.correo);
-    if (!correoValido(correo)) return { estado: 400, cuerpo: { error: 'correo no valido' } };
+    if (!correoValido(correo)) return { estado: 400, cuerpo: { error: 'correo no válido' } };
     const id = nuevoId();
     await env.DB.prepare(
       `INSERT INTO pedidos (id, correo, nombre, tipo, importe, moneda, pasarela, ref, estado, creado, nota)
