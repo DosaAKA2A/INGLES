@@ -1,11 +1,11 @@
-# Wordly
+# Verby
 
 Curso de inglés desde cero (A0 → A1), como web interactiva. Sin frameworks y
 sin dependencias: HTML, CSS y JS planos servidos por GitHub Pages, más un
 worker de Cloudflare para las cuentas, las licencias, el progreso y la IA.
 
 El repositorio se sigue llamando `INGLES` y el worker `ingles`; el producto es
-Wordly.
+Verby.
 
 ## Qué hace
 
@@ -51,7 +51,7 @@ worker y cae al sintetizador del navegador si esa no está.
     crear `data/u13.js` con `CURSO.push({...})` y sumar su `<script>` en
     `index.html`. El esquema está comentado en `datos.js`.
   - `panel.html` — el backoffice: pedidos, usuarios y licencias.
-  - `logo.svg`, `wordly.svg` y sus versiones en blanco — la marca.
+  - `logo.svg`, `verby.svg` y sus versiones en blanco — la marca.
 - `worker/` — worker de Cloudflare `ingles`.
   - `esquema.sql` — las 9 tablas de D1.
   - `cuentas.js`, `admin.js`, `correo.js`, `limites.js`, `ia.js`, `util.js`.

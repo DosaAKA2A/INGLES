@@ -41,7 +41,7 @@ function vOnboarding(paso, borrador) {
         <div class="onb-paso"><div class="ej-barra"><i style="width:33%"></i></div></div>
         <div class="onb-centro">
           <img class="onb-marca" src="logo.svg" alt="" width="682" height="455">
-          <h1 class="centrado"><img class="onb-wordly" src="wordly.svg" alt="Wordly" width="716" height="209"></h1>
+          <h1 class="centrado"><img class="onb-verby" src="verby.svg" alt="Verby" width="868" height="304"></h1>
           <p class="entradilla centrado" style="margin:0 auto 34px">Práctico, funcional y a tu ritmo. Primero, lo primero:</p>
           <label class="etiqueta" for="onb-nombre">¿Cómo te llamas?</label>
           <input class="respuesta-texto" id="onb-nombre" autocomplete="given-name" placeholder="Tu nombre" maxlength="30" value="${esc(borrador.nombre)}">

@@ -755,7 +755,7 @@ body.con-veredicto .pie-accion { opacity: 0; pointer-events: none; transform: tr
 .onb-nombre { color: var(--a-texto); }
 /* El h1 del alta lleva el logotipo dentro en vez de texto: el h1 sigue ahí
    para no perder el encabezado, y el nombre accesible sale del alt. */
-.onb-wordly { display: block; margin: 0 auto; height: 30px; width: auto; }
+.onb-verby { display: block; margin: 0 auto; height: 30px; width: auto; }
 
 .quiz { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .quiz-carta {
