@@ -84,3 +84,13 @@ La primera cuenta de admin se marca a mano:
 npx wrangler d1 execute ingles --remote \
   --command "UPDATE usuarios SET rol='admin' WHERE correo='tu@correo.com'"
 ```
+
+## El sitio
+
+- Producción: **Cloudflare Pages**, proyecto `verby` → `verby-cgv.pages.dev`,
+  y `verby.cloud` en cuanto propaguen los nameservers.
+  Se publica con `npx wrangler pages deploy docs --project-name verby --branch main`.
+- GitHub Pages sigue sirviendo `docs/` en `dosaaka2a.github.io/INGLES` mientras
+  dure la mudanza; los dos orígenes están en `ORIGENES`.
+- Ojo: Pages sirve las rutas sin extensión. El panel es `/panel`, no
+  `/panel.html` (esa devuelve un 308 al primero).
