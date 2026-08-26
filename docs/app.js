@@ -12,7 +12,7 @@
 // probar el registro contra el worker de verdad gastaría envíos de correo.
 const API = /^(localhost|127\.0\.0\.1)$/.test(location.hostname)
   ? 'http://127.0.0.1:8787'
-  : 'https://ingles.studio-iris2026.workers.dev';
+  : 'https://api.verby.cloud';
 const CLAVE_LOCAL = 'ingles-progreso';
 const CLAVE_TOKEN = 'ingles-token';
 const CLAVE_AJUSTES = 'ingles-ajustes';

@@ -2,11 +2,18 @@ name = "ingles"
 main = "worker.js"
 compatibility_date = "2026-08-01"
 
+# El worker en dominio propio. No es cosmetica: las reglas de WAF de Cloudflare
+# NO se aplican a *.workers.dev, solo a rutas de una zona propia. Con
+# custom_domain el registro DNS lo crea wrangler solo.
+[[routes]]
+pattern = "api.verby.cloud"
+custom_domain = true
+
 # Quien puede llamar al worker. El sitio vive en Cloudflare Pages (proyecto
 # `verby`); verby.cloud entra en cuanto propaguen los nameservers. El de
 # GitHub Pages sigue mientras tanto para no dejar a nadie fuera.
 [vars]
-ORIGENES = "https://verby.cloud,https://www.verby.cloud,https://verby-cgv.pages.dev,https://dosaaka2a.github.io,http://localhost:8080,http://127.0.0.1:8080"
+ORIGENES = "https://app.verby.cloud,https://verby.cloud,https://www.verby.cloud,https://verby-cgv.pages.dev,https://dosaaka2a.github.io,http://localhost:8080,http://127.0.0.1:8080"
 
 # Cuentas, licencias, pedidos, progreso y contadores de limite.
 [[d1_databases]]
