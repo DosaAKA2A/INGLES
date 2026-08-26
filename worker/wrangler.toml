@@ -2,8 +2,15 @@ name = "ingles"
 main = "worker.js"
 compatibility_date = "2026-08-01"
 
-# Progreso del curso (XP, racha, repaso espaciado, ensayos corregidos).
-# Es un solo usuario: una clave por dispositivo no hace falta, el pase basta.
+# Cuentas, licencias, pedidos, progreso y contadores de limite.
+[[d1_databases]]
+binding = "DB"
+database_name = "ingles"
+database_id = "919f1c9d-4ee8-47c3-aab4-54888aa7cbfc"
+
+# Progreso del curso anterior al multiusuario (una sola clave, 'progreso').
+# Se mantiene solo para migrar; el progreso nuevo vive en D1, porque el plan
+# gratis de KV son 1000 escrituras al dia y la sincronizacion las quema.
 [[kv_namespaces]]
 binding = "INGLES_KV"
 id = "1ca607ab162949d2b3df4190ec618805"
@@ -11,3 +18,7 @@ id = "1ca607ab162949d2b3df4190ec618805"
 # Voz neuronal de Cloudflare (Workers AI) para el texto dinamico del curso.
 [ai]
 binding = "AI"
+
+# Limpieza diaria: codigos caducados, sesiones muertas y cubos de limite.
+[triggers]
+crons = ["17 4 * * *"]
